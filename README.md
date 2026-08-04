@@ -1,36 +1,68 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Brand Forged
 
-## Getting Started
+Brand Forged is a Next.js application. This document covers local development and engineering workflows only.
 
-First, run the development server:
+## Authoritative product and governance sources
+
+The README is not a governance or product-definition document. Refer to the following sources for those decisions:
+
+- [Brand Forged Constitution](docs/constitution/Brand_Forged_Constitution_v1.0.md)
+- [Brand Forged Knowledge System](docs/knowledge-system/Knowledge_System.md)
+- [Core Knowledge Pack](docs/knowledge-system/Core_Knowledge_Pack.md)
+- [Brand Forged Master Playbook](docs/playbook/Brand_Forged_Master_Playbook_v1.0.md)
+- [Repository Audit](docs/repository-audit-v1.md)
+- [Sprint 0 Implementation Plan](SPRINT_0_IMPLEMENTATION_PLAN.md)
+
+Do not restate, interpret, or summarize those authoritative documents here. Update their source files directly when governance or product direction changes.
+
+## Prerequisites
+
+- Node.js `24.16.0`
+- npm `11.13.0`
+
+The expected runtime is pinned in `.nvmrc` and `package.json`.
+
+## Install
+
+```bash
+npm ci
+```
+
+## Local development
 
 ```bash
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Open [http://localhost:3000](http://localhost:3000).
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Verification
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+Run the following before proposing a change:
 
-## Learn More
+```bash
+npm run lint
+npm run typecheck
+npm run build
+```
 
-To learn more about Next.js, take a look at the following resources:
+## Project scripts
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+| Command | Purpose |
+| --- | --- |
+| `npm run dev` | Start the local development server. |
+| `npm run lint` | Run ESLint. |
+| `npm run typecheck` | Run TypeScript without emitting files. |
+| `npm run build` | Build the production application. |
+| `npm run start` | Run the production application after a build. |
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## Environment configuration
 
-## Deploy on Vercel
+Sprint 0 will establish environment validation and document required variables. Do not commit `.env` files or production credentials.
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+## Repository conventions
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+- Keep product-domain decisions in their authoritative documentation, not in this README.
+- Keep application changes scoped to an approved milestone.
+- Preserve workspace isolation in all future persistence, authorization, and asset-storage work.
+- Run the verification commands above for applicable changes.
