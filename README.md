@@ -1,26 +1,32 @@
 # Brand Forged
 
-Brand Forged is a Next.js application. This document covers local development and engineering workflows only.
+Brand Forged is a Next.js platform application.
 
-## Authoritative product and governance sources
+This README describes engineering workflows only.
 
-The README is not a governance or product-definition document. Refer to the following sources for those decisions:
+Product definition, governance, and architectural authority are defined through the Brand Forged Knowledge System and its authoritative documents.
 
-- [Brand Forged Constitution](docs/constitution/Brand_Forged_Constitution_v1.0.md)
-- [Brand Forged Knowledge System](docs/knowledge-system/Knowledge_System.md)
-- [Core Knowledge Pack](docs/knowledge-system/Core_Knowledge_Pack.md)
-- [Brand Forged Master Playbook](docs/playbook/Brand_Forged_Master_Playbook_v1.0.md)
+## Authoritative Sources
+
+The Brand Forged Constitution, Knowledge System, Core Knowledge Pack, and Master Playbook are the authoritative product and governance sources.
+
+If these documents are not present in the repository, retrieve them from the Brand Forged authoritative knowledge source before making architectural or product decisions.
+
+Engineering documentation supplements the authoritative sources; it does not replace them.
+
+Do not recreate or reinterpret these documents from memory.
+
 - [Repository Audit](docs/repository-audit-v1.md)
 - [Sprint 0 Implementation Plan](SPRINT_0_IMPLEMENTATION_PLAN.md)
 
-Do not restate, interpret, or summarize those authoritative documents here. Update their source files directly when governance or product direction changes.
+Do not restate, interpret, or summarize the authoritative documents here. Update their source files directly when governance or product direction changes.
 
 ## Prerequisites
 
 - Node.js `24.16.0`
 - npm `11.13.0`
 
-The expected runtime is pinned in `.nvmrc` and `package.json`.
+The supported runtime contract is pinned in `.nvmrc` and `package.json`.
 
 ## Install
 
@@ -63,6 +69,7 @@ Sprint 0 will establish environment validation and document required variables. 
 ## Repository conventions
 
 - Keep product-domain decisions in their authoritative documentation, not in this README.
+- Retrieve authoritative sources before creating or modifying documentation, architecture, or implementation.
 - Keep application changes scoped to an approved milestone.
 - Preserve workspace isolation in all future persistence, authorization, and asset-storage work.
 - Run the verification commands above for applicable changes.
