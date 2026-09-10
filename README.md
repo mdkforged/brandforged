@@ -1,4 +1,4 @@
-# Brand Forged
+﻿# Brand Forged
 
 Brand Forged is a Next.js platform application.
 
@@ -49,6 +49,7 @@ Run the following before proposing a change:
 ```bash
 npm run lint
 npm run typecheck
+npm test
 npm run build
 ```
 
@@ -59,12 +60,25 @@ npm run build
 | `npm run dev` | Start the local development server. |
 | `npm run lint` | Run ESLint. |
 | `npm run typecheck` | Run TypeScript without emitting files. |
+| `npm test` | Run Node unit tests (workspace isolation). |
 | `npm run build` | Build the production application. |
 | `npm run start` | Run the production application after a build. |
 
 ## Environment configuration
 
-Sprint 0 will establish environment validation and document required variables. Do not commit `.env` files or production credentials.
+Do not commit `.env` files, `.env.local`, or production credentials. Use `.env.example` as the template.
+
+## Supabase Sprint 0
+
+Auth and persistence seams use Supabase (Auth + Postgres) with Zod-validated environment access.
+
+1. Copy `.env.example` to `.env.local` and set `NEXT_PUBLIC_SUPABASE_URL` and `NEXT_PUBLIC_SUPABASE_ANON_KEY`.
+2. Optionally set `SUPABASE_SERVICE_ROLE_KEY` for server-only admin access (never expose to the browser).
+3. Set `AUTH_REQUIRED=true` to protect `/app`, `/settings`, and `/workspaces` via middleware. `/` stays public.
+4. Apply SQL migrations under `supabase/migrations/` to your Supabase project.
+5. Sign in at `/login` (email/password). Health check: `GET /api/health` returns `{ ok, authConfigured }` with no secrets.
+
+Workspace isolation is enforced by RLS policies and pure policy helpers in `lib/auth/workspace-policy.ts`.
 
 ## Repository conventions
 
