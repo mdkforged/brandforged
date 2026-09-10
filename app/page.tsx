@@ -1,6 +1,11 @@
 "use client";
 
-import { useState } from "react";
+import { useMemo, useState } from "react";
+import {
+  DEMO_WORKSPACES,
+  DEFAULT_DEMO_WORKSPACE,
+  type WorkspaceSummary,
+} from "@/lib/workspaces/demo";
 
 const modules = [
   { name: "Overview", icon: "◈" },
@@ -10,20 +15,49 @@ const modules = [
   { name: "Workflows", icon: "↗" },
 ];
 
-const projects = [
-  { name: "September launch system", type: "Campaign", status: "In review", color: "coral" },
-  { name: "Tethered & Truth core kit", type: "Identity", status: "In progress", color: "mint" },
-  { name: "Founder story templates", type: "Template set", status: "Ready", color: "yellow" },
-];
+function sampleProjects(workspaceName: string) {
+  return [
+    { name: "September launch system", type: "Campaign", status: "In review", color: "coral" },
+    { name: `${workspaceName} core kit`, type: "Identity", status: "In progress", color: "mint" },
+    { name: "Founder story templates", type: "Template set", status: "Ready", color: "yellow" },
+  ];
+}
 
 export default function Home() {
   const [activeModule, setActiveModule] = useState("Overview");
+  const [activeWorkspace, setActiveWorkspace] = useState<WorkspaceSummary>(
+    DEFAULT_DEMO_WORKSPACE,
+  );
+
+  const projects = useMemo(
+    () => sampleProjects(activeWorkspace.name),
+    [activeWorkspace.name],
+  );
+
+  function cycleWorkspace() {
+    const idx = DEMO_WORKSPACES.findIndex((w) => w.slug === activeWorkspace.slug);
+    const next = DEMO_WORKSPACES[(idx + 1) % DEMO_WORKSPACES.length];
+    setActiveWorkspace(next);
+  }
 
   return (
     <main className="app-shell">
       <aside className="sidebar">
         <div className="brand-mark"><span>BF</span><div><strong>Brand</strong><em>Forged</em></div></div>
-        <div className="workspace-switcher"><span className="workspace-dot" /> <div><small>WORKSPACE</small><strong>Tethered &amp; Truth</strong></div><span className="chevron">⌄</span></div>
+        <button
+          type="button"
+          className="workspace-switcher"
+          onClick={cycleWorkspace}
+          aria-label={`Switch workspace (DEMO). Current: ${activeWorkspace.name}`}
+          title="DEMO / FALLBACK workspaces — click to switch"
+        >
+          <span className="workspace-dot" />
+          <div>
+            <small>WORKSPACE</small>
+            <strong>{activeWorkspace.name}</strong>
+          </div>
+          <span className="chevron">⌄</span>
+        </button>
         <p className="nav-label">Workspace</p>
         <nav className="nav-list" aria-label="Workspace navigation">
           {modules.map((module) => (
