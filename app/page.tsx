@@ -1,65 +1,52 @@
-import Image from "next/image";
+"use client";
+
+import { useState } from "react";
+
+const modules = [
+  { name: "Overview", icon: "◈" },
+  { name: "Identity Engine", icon: "✦" },
+  { name: "Asset Library", icon: "▧" },
+  { name: "Template Engine", icon: "⌘" },
+  { name: "Workflows", icon: "↗" },
+];
+
+const projects = [
+  { name: "September launch system", type: "Campaign", status: "In review", color: "coral" },
+  { name: "Tethered & Truth core kit", type: "Identity", status: "In progress", color: "mint" },
+  { name: "Founder story templates", type: "Template set", status: "Ready", color: "yellow" },
+];
 
 export default function Home() {
+  const [activeModule, setActiveModule] = useState("Overview");
+
   return (
-    <div className="flex flex-col flex-1 items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex flex-1 w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the page.tsx file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
-          </p>
+    <main className="app-shell">
+      <aside className="sidebar">
+        <div className="brand-mark"><span>BF</span><div><strong>Brand</strong><em>Forged</em></div></div>
+        <div className="workspace-switcher"><span className="workspace-dot" /> <div><small>WORKSPACE</small><strong>Tethered &amp; Truth</strong></div><span className="chevron">⌄</span></div>
+        <p className="nav-label">Workspace</p>
+        <nav className="nav-list" aria-label="Workspace navigation">
+          {modules.map((module) => (
+            <button className={activeModule === module.name ? "nav-item active" : "nav-item"} key={module.name} onClick={() => setActiveModule(module.name)}>
+              <span className="nav-icon">{module.icon}</span>{module.name}
+            </button>
+          ))}
+        </nav>
+        <div className="sidebar-bottom"><button className="nav-item"><span className="nav-icon">⚙</span>Settings</button><div className="user-chip"><span className="avatar">MD</span><div><strong>Mary Diane</strong><small>Owner</small></div><span className="more">•••</span></div></div>
+      </aside>
+
+      <section className="content">
+        <header className="topbar"><div className="breadcrumbs">Workspace <span>/</span> {activeModule}</div><div className="top-actions"><button className="icon-button" aria-label="Search">⌕</button><button className="icon-button" aria-label="Notifications">♢<i /></button><button className="new-button">+ New work</button></div></header>
+        <div className="content-inner">
+          <div className="page-intro"><div><p className="eyebrow">Tuesday, September 3, 2026</p><h1>Good morning, Mary.</h1><p className="intro-copy">Your brand system is moving. Here is the work that needs your attention.</p></div><div className="health-badge"><span /> System healthy</div></div>
+
+          <div className="stats-grid"><div className="stat-card accent-coral"><span>Active projects</span><strong>12</strong><small>↑ 3 this month</small></div><div className="stat-card accent-mint"><span>Published assets</span><strong>248</strong><small>↑ 18 this month</small></div><div className="stat-card accent-yellow"><span>Needs your review</span><strong>07</strong><small>Across 3 workflows</small></div><div className="stat-card accent-ink"><span>Brand consistency</span><strong>94<span>%</span></strong><small>↑ 6% since August</small></div></div>
+
+          <div className="dashboard-grid"><section className="panel projects-panel"><div className="panel-heading"><div><p className="eyebrow">Your workspace</p><h2>Active work</h2></div><button className="text-button">View all <span>→</span></button></div><div className="project-list">{projects.map((project) => <article className="project-row" key={project.name}><span className={`project-swatch ${project.color}`} /><div className="project-info"><strong>{project.name}</strong><span>{project.type}</span></div><span className={`status status-${project.color}`}>{project.status}</span><button className="row-arrow" aria-label={`Open ${project.name}`}>→</button></article>)}</div><button className="add-work">+ Add a project</button></section>
+            <section className="panel activity-panel"><div className="panel-heading"><div><p className="eyebrow">Live feed</p><h2>Recent activity</h2></div><button className="more-button" aria-label="More activity">•••</button></div><div className="activity-list"><div><span className="activity-avatar coral-bg">AL</span><p><strong>Alex Lee</strong> published <b>Brand voice v2</b><small>12 minutes ago</small></p></div><div><span className="activity-avatar mint-bg">MD</span><p><strong>You</strong> approved <b>Founder story / 03</b><small>48 minutes ago</small></p></div><div><span className="activity-avatar yellow-bg">JR</span><p><strong>Jordan Ruiz</strong> added 8 assets to <b>Core kit</b><small>Yesterday at 4:32 PM</small></p></div></div><button className="text-button activity-link">Open activity log <span>→</span></button></section></div>
+          <section className="focus-strip"><div className="focus-icon">✦</div><div><p className="eyebrow">Focus area</p><h2>Keep the story consistent.</h2><p>Review the seven pieces waiting for your voice before this week&apos;s launch.</p></div><button className="dark-button">Review queue <span>→</span></button></section>
         </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={16}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
-        </div>
-      </main>
-    </div>
+      </section>
+    </main>
   );
 }
