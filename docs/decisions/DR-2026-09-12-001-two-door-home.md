@@ -61,7 +61,7 @@ From HARD_RULES_AND_WORKFLOWS mine (2026-09-12):
 
 ## Explicitly not Canon yet (tracked gaps)
 
-1. Final marketing labels for Door A (“Quick Post” vs “Quick Thought”) and Door B (“Your dreams coming true”) — **founder naming**, to be locked in Brand Vault / Playbook.
+1. Final marketing labels for Door A (“Quick Post” vs “Quick Thought”) and Door B (“Your dreams coming true”) — **founder naming**, to be locked in Brand Vault / Playbook. Recovered forge family in **DR-2026-09-12-002** (Sword / Citadel / …) is the naming language layer; door labels may adopt forge terms or stay plain-language.
 2. **King’s Corner** feature inventory folds into Door B as product lineage; rename/brand under Brand Forged for customer-facing UI unless Strategy Room keeps the name.
 3. **Tethered & Truth palette conflict** between Final Brand Kit and Master Brand System packs — must be resolved before palette enforcement is honest for T&T workspace.
 4. This DR should be **published into the Institutional Library / Decision Register** to become full Canon (today: adopted founder direction + implementation brief).
@@ -104,3 +104,4 @@ From HARD_RULES_AND_WORKFLOWS mine (2026-09-12):
 - Platform Doctrine (Institutional Record)
 - Strategy Room Order No. 001
 - Founder product direction 2026-09-11 (two desks / King’s Corner / T&T dual use)
+- DR-2026-09-12-002 (forge naming family)
