@@ -23,7 +23,9 @@ Brand Forged stays **simple for the user**.
    - Is it **only a positive** in their life?  
    If no → don’t ship it (or cut it).
 
-3. Stay true to the founder’s self, to the original spirit of AI as a helper when it entered the scene, and to that mission — not to clever naming or complexity for its own sake.
+3. **Never should the user work for AI.** The AI (and the app) work for the user — not the reverse. No busywork to “feed the model,” no ritual prompts required to get basic value, no making people serve the system.
+
+4. Stay true to the founder’s self, to the original spirit of AI as a helper when it entered the scene, and to that mission — not to clever naming or complexity for its own sake.
 
 ---
 
