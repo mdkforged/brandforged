@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useState } from "react";
+import { useProfileAccess } from "@/lib/access/use-profile-access";
 import { HOME_DOORS } from "@/lib/home/doors";
 import {
   DEFAULT_DEMO_WORKSPACE,
@@ -16,6 +17,7 @@ type WorkspaceShellProps = {
 
 export function WorkspaceShell({ children }: WorkspaceShellProps) {
   const pathname = usePathname();
+  const { signedIn, ready: authReady } = useProfileAccess();
   const [activeWorkspace, setActiveWorkspace] = useState<WorkspaceSummary>(
     DEFAULT_DEMO_WORKSPACE,
   );
@@ -84,11 +86,16 @@ export function WorkspaceShell({ children }: WorkspaceShellProps) {
         ) : null}
 
         <div className="sidebar-bottom">
-          <Link href="/login" className="user-chip user-chip-link">
+          <Link
+            href={signedIn ? "/" : "/login"}
+            className="user-chip user-chip-link"
+          >
             <span className="avatar">MD</span>
             <div>
               <strong>Mary Diane</strong>
-              <small>Sign in</small>
+              <small>
+                {!authReady ? "…" : signedIn ? "Signed in" : "Sign in"}
+              </small>
             </div>
           </Link>
         </div>

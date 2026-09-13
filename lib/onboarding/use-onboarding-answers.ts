@@ -12,6 +12,7 @@ import {
 import type { SocialSiteId } from "@/lib/onboarding/social";
 
 export const IDENTITY_UPDATED_EVENT = "bf-identity-updated";
+export const IDENTITY_DONE_KEY = "bf-identity-done";
 
 /** Bridge answers for This is You / Quick posts (aboutYou + contentStyle still written by /start). */
 export type OnboardingAnswers = {
@@ -42,6 +43,7 @@ function subscribe(onStoreChange: () => void) {
     if (
       event.key === IDENTITY_STORAGE_KEY ||
       event.key === LEGACY_ONBOARDING_STORAGE_KEY ||
+      event.key === IDENTITY_DONE_KEY ||
       event.key === null
     ) {
       onStoreChange();
@@ -125,6 +127,13 @@ function normalizeReferencePhotos(value: unknown): string[] {
 export function hasFinishedStart(
   answers: OnboardingAnswers | null | undefined,
 ): boolean {
+  if (typeof window !== "undefined") {
+    try {
+      if (window.localStorage.getItem(IDENTITY_DONE_KEY) === "1") return true;
+    } catch {
+      /* ignore */
+    }
+  }
   if (!answers) return false;
   if (answers.vaultSaved || answers.activated) return true;
   const brand =

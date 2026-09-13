@@ -7,7 +7,6 @@ import {
   type CSSProperties,
   type ChangeEvent,
 } from "react";
-import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { getEnergyStrike } from "@/lib/brand/energy-strike";
 import {
@@ -38,8 +37,13 @@ import {
 import {
   SOCIAL_PICK_DEFAULTS,
   SOCIAL_SITES,
+  labelForSite,
   type SocialSiteId,
 } from "@/lib/onboarding/social";
+import {
+  IDENTITY_DONE_KEY,
+  IDENTITY_UPDATED_EVENT,
+} from "@/lib/onboarding/use-onboarding-answers";
 
 const PLATFORM_STRIKE = getEnergyStrike("forge-green");
 
@@ -238,26 +242,60 @@ export default function StartPage() {
     if (p) setStage(p);
   }
 
+  function persistIdentity(payload: Record<string, unknown>): boolean {
+    const write = (body: Record<string, unknown>) => {
+      window.localStorage.setItem(IDENTITY_STORAGE_KEY, JSON.stringify(body));
+      window.localStorage.setItem(IDENTITY_DONE_KEY, "1");
+      window.dispatchEvent(new Event(IDENTITY_UPDATED_EVENT));
+    };
+    try {
+      write(payload);
+      return true;
+    } catch {
+      // QuotaExceeded from fat photo data URLs — still activate without them.
+      const slim = {
+        ...payload,
+        referencePhotos: [...DEFAULT_REFERENCE_PHOTOS],
+        logoUpload: undefined,
+        photosDeferred: true,
+      };
+      try {
+        write(slim);
+        setPhotoError(
+          "Photos were too large to keep on this device. Brand setup still saved — add smaller photos anytime from This is You.",
+        );
+        return true;
+      } catch {
+        return false;
+      }
+    }
+  }
+
   function onSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    if (stage !== "brand_vault") {
+    if (stage === "brief") {
       goNext();
       return;
     }
-    if (!ready || !approved || !firstMake) return;
+    // kit_review = Save and open (boom done)
+    if (stage !== "kit_review") {
+      goNext();
+      return;
+    }
+    if (!ready || !approved || !firstMake || socialSites.length === 0) return;
     setPending(true);
     const referencePhotos = resolveReferencePhotos();
+    const now = new Date().toISOString();
     const payload = {
       input,
       kit,
-      stage: "brand_vault" as const,
+      stage: "kit_review" as const,
       approved: true,
       vaultSaved: true,
       firstMake,
       pickedForYou: picked,
       hasExistingLogo,
       logoUpload: logoUpload || undefined,
-      // bridge fields for This is You / Quick posts readers
       aboutYou: input.brandName,
       contentStyle: input.moodWords,
       brandName: input.brandName,
@@ -265,18 +303,14 @@ export default function StartPage() {
       industry: input.industry,
       referencePhotos,
       socialSites,
-      savedAt: new Date().toISOString(),
-      activatedAt: new Date().toISOString(),
+      savedAt: now,
+      activatedAt: now,
       activated: true,
     };
-    try {
-      window.localStorage.setItem(IDENTITY_STORAGE_KEY, JSON.stringify(payload));
-    } catch {
+    const ok = persistIdentity(payload);
+    if (!ok) {
       setPending(false);
-      setPhotoError(
-        "Those photos are a bit large for this device to keep. Try slightly smaller shots — or tap You pick for me on photos.",
-      );
-      setStage("brief");
+      setPhotoError("Could not save on this device. Try again without large photo uploads.");
       return;
     }
     router.replace(routeForFirstMake(firstMake));
@@ -534,37 +568,6 @@ export default function StartPage() {
             </>
           ) : null}
 
-          {stage === "engine_run" ? (
-            <>
-              <h2 className="review-heading">{IDENTITY_COPY.engineRunTitle}</h2>
-              <p className="field-hint">{IDENTITY_COPY.engineRunBody}</p>
-              <p className="field-hint" aria-live="polite">
-                {IDENTITY_COPY.engineRunProgress}
-              </p>
-              <article className="module-card">
-                <p>
-                  Building kit for <strong>{input.brandName || "your brand"}</strong>
-                  ...
-                </p>
-                <ul>
-                  <li>{kit.paletteLabel}</li>
-                  <li>{kit.typographyLabel}</li>
-                  <li>{kit.logoLabel}</li>
-                  <li>{kit.voiceLabel}</li>
-                  <li>{kit.templatePackLabel}</li>
-                </ul>
-              </article>
-              <div className="step-actions">
-                <button type="button" className="step-back" onClick={goBack}>
-                  {IDENTITY_COPY.back}
-                </button>
-                <button className="login-submit" type="submit">
-                  {IDENTITY_COPY.continue}
-                </button>
-              </div>
-            </>
-          ) : null}
-
           {stage === "kit_review" ? (
             <>
               <h2 className="review-heading">{IDENTITY_COPY.reviewTitle}</h2>
@@ -599,6 +602,18 @@ export default function StartPage() {
                 <p><strong>Templates:</strong> {kit.templatePackLabel}</p>
                 <p><strong>Style guide:</strong> {kit.styleGuideLabel}</p>
               </article>
+
+              <div className="login-field">
+                <span>Your socials</span>
+                <div className="social-checks" role="list" aria-label="Selected social sites">
+                  {socialSites.map((id) => (
+                    <span key={id} className="social-chip is-checked" role="listitem">
+                      {labelForSite(id)}
+                    </span>
+                  ))}
+                </div>
+              </div>
+
               <div className="field-head">
                 <span>Approve palette, fonts, and logo?</span>
                 <button
@@ -618,82 +633,9 @@ export default function StartPage() {
                 onClick={() => setApproved(true)}
               >
                 <strong>{IDENTITY_COPY.approveYes}</strong>
-                <span>Required before Sticker Book activates.</span>
+                <span>Locks your kit so posts stay on-brand.</span>
               </button>
-              <div className="step-actions">
-                <button type="button" className="step-back" onClick={goBack}>
-                  {IDENTITY_COPY.back}
-                </button>
-                <button
-                  className="login-submit"
-                  type="submit"
-                  disabled={!approved}
-                >
-                  {IDENTITY_COPY.continue}
-                </button>
-              </div>
-            </>
-          ) : null}
 
-          {stage === "sticker_book" ? (
-            <>
-              <h2 className="review-heading">{IDENTITY_COPY.stickerTitle}</h2>
-              <p className="field-hint">{IDENTITY_COPY.stickerBody}</p>
-              <div className="step-actions">
-                <button type="button" className="step-back" onClick={goBack}>
-                  {IDENTITY_COPY.back}
-                </button>
-                <button className="login-submit" type="submit">
-                  {IDENTITY_COPY.continue}
-                </button>
-              </div>
-            </>
-          ) : null}
-
-          {stage === "first_template" ? (
-            <>
-              <h2 className="review-heading">{IDENTITY_COPY.templateTitle}</h2>
-              <p className="field-hint">{IDENTITY_COPY.templateBody}</p>
-              <p>
-                <Link href="/you/posts" className="door-upgrade-btn">
-                  {IDENTITY_COPY.templateCta}
-                </Link>
-              </p>
-              <div className="step-actions">
-                <button type="button" className="step-back" onClick={goBack}>
-                  {IDENTITY_COPY.back}
-                </button>
-                <button className="login-submit" type="submit">
-                  {IDENTITY_COPY.continue}
-                </button>
-              </div>
-            </>
-          ) : null}
-
-          {stage === "export_publish" ? (
-            <>
-              <h2 className="review-heading">{IDENTITY_COPY.exportTitle}</h2>
-              <p className="field-hint">{IDENTITY_COPY.exportBody}</p>
-              <div className="step-actions">
-                <button type="button" className="step-back" onClick={goBack}>
-                  {IDENTITY_COPY.back}
-                </button>
-                <button className="login-submit" type="submit">
-                  {IDENTITY_COPY.continue}
-                </button>
-              </div>
-            </>
-          ) : null}
-
-          {stage === "brand_vault" ? (
-            <>
-              <h2 className="review-heading">{IDENTITY_COPY.vaultTitle}</h2>
-              <p className="field-hint">{IDENTITY_COPY.vaultBody}</p>
-              <article className="module-card">
-                <h2>{input.brandName}</h2>
-                <p>{input.industry}</p>
-                <p>{input.moodWords}</p>
-              </article>
               <div className="field-head">
                 <span>{IDENTITY_COPY.firstMakeLabel}</span>
                 <button type="button" className="pick-one" onClick={pickFirstMake}>
@@ -720,6 +662,13 @@ export default function StartPage() {
                   </button>
                 ))}
               </div>
+
+              {photoError ? (
+                <p className="login-alert" role="alert">
+                  {photoError}
+                </p>
+              ) : null}
+
               <div className="step-actions">
                 <button type="button" className="step-back" onClick={goBack}>
                   {IDENTITY_COPY.back}
@@ -727,13 +676,14 @@ export default function StartPage() {
                 <button
                   className="login-submit"
                   type="submit"
-                  disabled={pending || !firstMake}
+                  disabled={pending || !approved || !firstMake}
                 >
                   {pending ? IDENTITY_COPY.saving : IDENTITY_COPY.vaultCta}
                 </button>
               </div>
             </>
           ) : null}
+
         </form>
       </div>
     </main>

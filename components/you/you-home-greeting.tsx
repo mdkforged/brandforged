@@ -10,6 +10,7 @@ import {
   hasFinishedStart,
   useOnboardingAnswers,
 } from "@/lib/onboarding/use-onboarding-answers";
+import { labelForSite, type SocialSiteId } from "@/lib/onboarding/social";
 
 export function YouHomeGreeting() {
   const answers = useOnboardingAnswers();
@@ -74,6 +75,15 @@ export function YouHomeGreeting() {
               Pick your socials
             </Link>
           </p>
+        ) : null}
+        {!missingSocials && socialSites.length > 0 ? (
+          <div className="social-checks" role="list" aria-label="Your socials" style={{ marginTop: 12 }}>
+            {(socialSites as SocialSiteId[]).map((id) => (
+              <span key={id} className="social-chip is-checked" role="listitem">
+                {labelForSite(id)}
+              </span>
+            ))}
+          </div>
         ) : null}
       </div>
     </div>

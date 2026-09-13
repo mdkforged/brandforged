@@ -34,12 +34,7 @@ export type OnboardingStage =
 
 export const ONBOARDING_STAGES: readonly OnboardingStage[] = [
   "brief",
-  "engine_run",
   "kit_review",
-  "sticker_book",
-  "first_template",
-  "export_publish",
-  "brand_vault",
 ] as const;
 
 export const ONBOARDING_STAGE_LABEL: Record<OnboardingStage, string> = {
@@ -199,7 +194,7 @@ export const IDENTITY_COPY = {
   firstMakeLabel: "What do you want to make first?",
   firstMakeHint:
     "After your kit is saved, we'll take you to the right place. This is not one of the five Brand Input questions.",
-  vaultCta: "Save to Brand Vault",
+  vaultCta: "Save and open",
   saving: "Saving...",
   pipelineNote:
     "Pipeline: Brand Input -> Identity Engine -> Photo Transformation -> Palette Enforcement -> Sticker Book -> Export Router -> Brand Vault",
