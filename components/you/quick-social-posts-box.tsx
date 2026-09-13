@@ -1,28 +1,15 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useState } from "react";
-import {
-  ONBOARDING_STORAGE_KEY,
-  type OnboardingAnswers,
-} from "@/lib/onboarding/questions";
+import { useOnboardingAnswers } from "@/lib/onboarding/use-onboarding-answers";
 import { labelForSite, type SocialSiteId } from "@/lib/onboarding/social";
 
 export function QuickSocialPostsBox() {
-  const [sites, setSites] = useState<SocialSiteId[]>([]);
-
-  useEffect(() => {
-    try {
-      const raw = window.localStorage.getItem(ONBOARDING_STORAGE_KEY);
-      if (!raw) return;
-      const parsed = JSON.parse(raw) as Partial<OnboardingAnswers>;
-      if (Array.isArray(parsed.socialSites) && parsed.socialSites.length > 0) {
-        setSites(parsed.socialSites as SocialSiteId[]);
-      }
-    } catch {
-      // ignore
-    }
-  }, []);
+  const answers = useOnboardingAnswers();
+  const sites =
+    Array.isArray(answers?.socialSites) && answers.socialSites.length > 0
+      ? (answers.socialSites as SocialSiteId[])
+      : [];
 
   const labels =
     sites.length > 0

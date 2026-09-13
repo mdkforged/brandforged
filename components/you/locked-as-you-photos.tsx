@@ -1,38 +1,20 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import {
-  ONBOARDING_STORAGE_KEY,
-  type OnboardingAnswers,
-} from "@/lib/onboarding/questions";
+import { useOnboardingAnswers } from "@/lib/onboarding/use-onboarding-answers";
 
 export function LockedAsYouPhotos() {
-  const [photos, setPhotos] = useState<string[] | null>(null);
-  const [label, setLabel] = useState<string | null>(null);
-  const [pickedForYou, setPickedForYou] = useState(false);
-
-  useEffect(() => {
-    try {
-      const raw = window.localStorage.getItem(ONBOARDING_STORAGE_KEY);
-      if (!raw) return;
-      const parsed = JSON.parse(raw) as Partial<OnboardingAnswers>;
-      if (
-        Array.isArray(parsed.referencePhotos) &&
-        parsed.referencePhotos.length === 3 &&
-        parsed.referencePhotos.every((p) => typeof p === "string" && p.length > 0)
-      ) {
-        setPhotos(parsed.referencePhotos);
-      }
-      if (typeof parsed.aboutYou === "string" && parsed.aboutYou.trim()) {
-        setLabel(parsed.aboutYou.trim());
-      }
-      if (parsed.pickedForYou?.photos) {
-        setPickedForYou(true);
-      }
-    } catch {
-      // ignore bad local payload
-    }
-  }, []);
+  const answers = useOnboardingAnswers();
+  const photos =
+    Array.isArray(answers?.referencePhotos) &&
+    answers.referencePhotos.length === 3 &&
+    answers.referencePhotos.every((p) => typeof p === "string" && p.length > 0)
+      ? answers.referencePhotos
+      : null;
+  const label =
+    typeof answers?.aboutYou === "string" && answers.aboutYou.trim()
+      ? answers.aboutYou.trim()
+      : null;
+  const pickedForYou = Boolean(answers?.pickedForYou?.photos);
 
   if (!photos) {
     return (

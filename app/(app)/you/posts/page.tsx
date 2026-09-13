@@ -1,11 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useMemo, useState } from "react";
-import {
-  ONBOARDING_STORAGE_KEY,
-  type OnboardingAnswers,
-} from "@/lib/onboarding/questions";
+import { useMemo } from "react";
+import { useOnboardingAnswers } from "@/lib/onboarding/use-onboarding-answers";
 import {
   labelForSite,
   templatesForSites,
@@ -13,25 +10,18 @@ import {
 } from "@/lib/onboarding/social";
 
 export default function QuickSocialPostsPage() {
-  const [sites, setSites] = useState<SocialSiteId[]>([]);
-  const [style, setStyle] = useState<string | null>(null);
-
-  useEffect(() => {
-    try {
-      const raw = window.localStorage.getItem(ONBOARDING_STORAGE_KEY);
-      if (!raw) return;
-      const parsed = JSON.parse(raw) as Partial<OnboardingAnswers>;
-      if (Array.isArray(parsed.socialSites)) {
-        setSites(parsed.socialSites as SocialSiteId[]);
-      }
-      if (typeof parsed.contentStyle === "string" && parsed.contentStyle.trim()) {
-        setStyle(parsed.contentStyle.trim());
-      }
-    } catch {
-      // ignore
-    }
-  }, []);
-
+  const answers = useOnboardingAnswers();
+  const sites = useMemo(
+    () =>
+      Array.isArray(answers?.socialSites)
+        ? (answers.socialSites as SocialSiteId[])
+        : [],
+    [answers],
+  );
+  const style =
+    typeof answers?.contentStyle === "string" && answers.contentStyle.trim()
+      ? answers.contentStyle.trim()
+      : null;
   const templates = useMemo(() => templatesForSites(sites), [sites]);
 
   return (
