@@ -1,18 +1,15 @@
 "use client";
 
-import { FormEvent, Suspense, useEffect, useMemo, useState, type CSSProperties } from "react";
+import { FormEvent, Suspense, useMemo, useState, type CSSProperties } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { createClient } from "@/lib/auth/supabase/client";
 import { isAuthConfigured } from "@/lib/validation/env";
-import {
-  DEFAULT_ENERGY_STRIKE,
-  ENERGY_STRIKE_STORAGE_KEY,
-  ENERGY_STRIKES,
-  type EnergyStrikeId,
-  getEnergyStrike,
-} from "@/lib/brand/energy-strike";
+import { getEnergyStrike } from "@/lib/brand/energy-strike";
 
 type Mode = "signin" | "signup";
+
+/** Sign-in shows Forge Green only — Energy Strike choices are back-burnered. */
+const PLATFORM_STRIKE = getEnergyStrike("forge-green");
 
 function LoginForm() {
   const router = useRouter();
@@ -25,29 +22,6 @@ function LoginForm() {
   const [error, setError] = useState<string | null>(null);
   const [info, setInfo] = useState<string | null>(null);
   const [pending, setPending] = useState(false);
-  const [strikeId, setStrikeId] = useState<EnergyStrikeId>(DEFAULT_ENERGY_STRIKE);
-
-  useEffect(() => {
-    try {
-      const saved = window.localStorage.getItem(ENERGY_STRIKE_STORAGE_KEY);
-      if (saved && ENERGY_STRIKES.some((s) => s.id === saved)) {
-        setStrikeId(saved as EnergyStrikeId);
-      }
-    } catch {
-      /* ignore */
-    }
-  }, []);
-
-  useEffect(() => {
-    try {
-      window.localStorage.setItem(ENERGY_STRIKE_STORAGE_KEY, strikeId);
-    } catch {
-      /* ignore */
-    }
-  }, [strikeId]);
-
-  const strike = getEnergyStrike(strikeId);
-  const logoSrc = strike.logoSrc ?? "/brand/logo-forge-green.webp";
 
   async function onSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -96,8 +70,8 @@ function LoginForm() {
   }
 
   const energyStyle = {
-    "--energy": strike.hex,
-    "--energy-soft": `${strike.hex}33`,
+    "--energy": PLATFORM_STRIKE.hex,
+    "--energy-soft": `${PLATFORM_STRIKE.hex}33`,
   } as CSSProperties;
 
   return (
@@ -108,36 +82,15 @@ function LoginForm() {
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
             className="login-logo"
-            src={logoSrc}
-            alt="Brand Forged mark — forged platinum with living energy"
+            src="/brand/logo-forge-green.webp"
+            alt="Brand Forged"
             width={280}
             height={280}
           />
           <p className="login-wordmark">
             <span>Brand</span> <strong>Forged</strong>
           </p>
-          <p className="login-line">Forged Platinum · Living Energy · User Chosen</p>
-        </div>
-
-        <div className="energy-picker" role="group" aria-label="Energy Strike color">
-          <p className="energy-label">Energy Strike · your choice</p>
-          <div className="energy-swatches">
-            {ENERGY_STRIKES.map((s) => (
-              <button
-                key={s.id}
-                type="button"
-                className={
-                  s.id === strikeId ? "energy-swatch is-active" : "energy-swatch"
-                }
-                style={{ "--swatch": s.hex } as CSSProperties}
-                aria-label={s.name}
-                aria-pressed={s.id === strikeId}
-                title={s.name}
-                onClick={() => setStrikeId(s.id)}
-              />
-            ))}
-          </div>
-          <p className="energy-name">{strike.name}</p>
+          <p className="login-line">Forged Platinum · Living Energy</p>
         </div>
 
         {!configured ? (
