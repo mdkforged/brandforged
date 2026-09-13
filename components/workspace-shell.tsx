@@ -51,7 +51,7 @@ export function WorkspaceShell({ children }: WorkspaceShellProps) {
           className="workspace-switcher"
           onClick={cycleWorkspace}
           aria-label={`Switch workspace. Current: ${activeWorkspace.name}`}
-          title="Demo workspaces â€” click to switch"
+          title="Demo workspaces Ã¢â‚¬â€ click to switch"
         >
           <span className="workspace-dot" />
           <div>
@@ -102,7 +102,7 @@ export function WorkspaceShell({ children }: WorkspaceShellProps) {
             {isHome ? "Home" : currentDoor?.label ?? "Home"}
           </div>
           <div className="top-actions">
-            <Link href="/login" className="new-button">
+            <Link href="/start" className="new-button">
               Sign in
             </Link>
           </div>
