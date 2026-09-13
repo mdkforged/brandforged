@@ -15,6 +15,7 @@ export {
   type BrandInputSet,
   type BrandKitDraft,
   type IdentitySession,
+  type LockedBrandKit,
   type OnboardingStage,
 } from "@/lib/identity/engine-scaffold";
 
@@ -50,5 +51,5 @@ export type OnboardingAnswers = {
   /** DR-011 fields when present */
   brandName?: string;
   input?: import("@/lib/identity/engine-scaffold").BrandInputSet;
-  kit?: import("@/lib/identity/engine-scaffold").BrandKitDraft;
+  kit?: import("@/lib/identity/engine-scaffold").LockedBrandKit;
 };

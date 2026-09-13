@@ -5,9 +5,9 @@ import {
   IDENTITY_STORAGE_KEY,
   LEGACY_ONBOARDING_STORAGE_KEY,
   type BrandInputSet,
-  type BrandKitDraft,
   type FirstMakeChoice,
   type IdentitySession,
+  type LockedBrandKit,
 } from "@/lib/identity/engine-scaffold";
 import type { SocialSiteId } from "@/lib/onboarding/social";
 
@@ -22,7 +22,9 @@ export type OnboardingAnswers = {
   brandName?: string;
   firstMake?: FirstMakeChoice;
   input?: BrandInputSet;
-  kit?: BrandKitDraft;
+  kit?: LockedBrandKit;
+  /** Convenience: locked primary hex when kit tokens present. */
+  primaryHex?: string;
   session?: IdentitySession;
 };
 
@@ -61,7 +63,7 @@ type StoredBlob = Partial<IdentitySession> &
     brandName?: string;
     firstMake?: FirstMakeChoice;
     input?: BrandInputSet;
-    kit?: BrandKitDraft;
+    kit?: LockedBrandKit;
     activatedAt?: string;
   };
 
@@ -119,6 +121,12 @@ function toAnswers(raw: string): OnboardingAnswers | null {
           }
         : undefined;
 
+    const kit = parsed.kit;
+    const primaryHex =
+      kit && kit.tokens && typeof kit.tokens.primaryHex === "string"
+        ? kit.tokens.primaryHex
+        : undefined;
+
     return {
       aboutYou,
       contentStyle,
@@ -129,7 +137,8 @@ function toAnswers(raw: string): OnboardingAnswers | null {
       brandName: brandName || undefined,
       firstMake,
       input: input,
-      kit: parsed.kit,
+      kit,
+      primaryHex,
       session,
     };
   } catch {

@@ -15,7 +15,7 @@ import {
   ONBOARDING_STAGE_LABEL,
   ONBOARDING_STAGES,
   briefReady,
-  draftKitFromInput,
+  generateLockedKit,
   nextStage,
   prevStage,
   routeForFirstMake,
@@ -46,16 +46,16 @@ export default function StartPage() {
   >({});
   const [pending, setPending] = useState(false);
 
+  const kit = useMemo(() => generateLockedKit(input), [input]);
+
   const energyStyle = useMemo(
     () =>
       ({
-        "--energy": PLATFORM_STRIKE.hex,
-        "--energy-soft": `${PLATFORM_STRIKE.hex}33`,
+        "--energy": kit.tokens.primaryHex || PLATFORM_STRIKE.hex,
+        "--energy-soft": `${kit.tokens.primaryHex || PLATFORM_STRIKE.hex}33`,
       }) as CSSProperties,
-    [],
+    [kit.tokens.primaryHex],
   );
-
-  const kit = useMemo(() => draftKitFromInput(input), [input]);
   const stepNum = stageIndex(stage) + 1;
   const ready = briefReady(input);
 
@@ -309,6 +309,28 @@ export default function StartPage() {
               <p className="field-hint">{IDENTITY_COPY.reviewHint}</p>
               <article className="module-card look-card">
                 <p><strong>Palette:</strong> {kit.paletteLabel}</p>
+                <div className="token-swatches" aria-label="Color tokens">
+                  {(
+                    [
+                      ["Primary", kit.tokens.primaryHex],
+                      ["Secondary", kit.tokens.secondaryHex],
+                      ["Accent", kit.tokens.accentHex],
+                    ] as const
+                  ).map(([label, hex]) => (
+                    <span key={label} className="token-swatch">
+                      <span
+                        className="token-swatch-chip"
+                        style={{ background: hex }}
+                        title={hex}
+                        aria-hidden
+                      />
+                      <span className="token-swatch-meta">
+                        {label}
+                        <code>{hex}</code>
+                      </span>
+                    </span>
+                  ))}
+                </div>
                 <p><strong>Typography:</strong> {kit.typographyLabel}</p>
                 <p><strong>Logo:</strong> {kit.logoLabel}</p>
                 <p><strong>Voice:</strong> {kit.voiceLabel}</p>

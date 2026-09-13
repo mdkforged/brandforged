@@ -3,6 +3,15 @@
  * Source: Master Brand System v1.0 section 2.3 Input Set + Workflow 4.2.
  */
 
+import {
+  generateLockedKit,
+  type LockedBrandKit,
+  type LockedBrandKitTokens,
+} from "@/lib/identity/locked-kit";
+
+export type { LockedBrandKit, LockedBrandKitTokens };
+export { generateLockedKit };
+
 export type LogoStylePreference = "wordmark" | "icon" | "combo";
 export type ColorPreference = "warm" | "cool" | "neutral" | "bold" | "";
 
@@ -53,14 +62,8 @@ export type BrandInputSet = {
   colorPreference: ColorPreference;
 };
 
-export type BrandKitDraft = {
-  paletteLabel: string;
-  typographyLabel: string;
-  logoLabel: string;
-  voiceLabel: string;
-  templatePackLabel: string;
-  styleGuideLabel: string;
-};
+/** @deprecated Use LockedBrandKit — alias kept for bridge readers. */
+export type BrandKitDraft = LockedBrandKit;
 
 export type IdentitySession = {
   input: BrandInputSet;
@@ -198,18 +201,9 @@ export const IDENTITY_COPY = {
     "Pipeline: Brand Input -> Identity Engine -> Photo Transformation -> Palette Enforcement -> Sticker Book -> Export Router -> Brand Vault",
 } as const;
 
-/** Deterministic draft kit until real generation exists - derived from Input Set only. */
-export function draftKitFromInput(input: BrandInputSet): BrandKitDraft {
-  const mood = input.moodWords.trim() || "clear, confident";
-  const color = input.colorPreference || "neutral";
-  return {
-    paletteLabel: `Draft palette (${color}) for ${input.brandName}`,
-    typographyLabel: `Type system tuned to mood: ${mood}`,
-    logoLabel: `Logo set - ${input.logoStyle} style`,
-    voiceLabel: `Voice guide for ${input.industry} / ${input.audience.slice(0, 80)}`,
-    templatePackLabel: "Social template pack (palette-locked)",
-    styleGuideLabel: "One-page style guide (PDF pending engine)",
-  };
+/** Compat alias — prefer generateLockedKit (DR-015). */
+export function draftKitFromInput(input: BrandInputSet): LockedBrandKit {
+  return generateLockedKit(input);
 }
 
 export function stageIndex(stage: OnboardingStage): number {

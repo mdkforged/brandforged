@@ -10,6 +10,8 @@ export function QuickSocialPostsBox() {
     Array.isArray(answers?.socialSites) && answers.socialSites.length > 0
       ? (answers.socialSites as SocialSiteId[])
       : [];
+  const primaryHex =
+    answers?.primaryHex || answers?.kit?.tokens?.primaryHex || undefined;
 
   const labels =
     sites.length > 0
@@ -17,7 +19,18 @@ export function QuickSocialPostsBox() {
       : "Pick your sites on Get started first";
 
   return (
-    <Link href="/you/posts" className="quick-posts-box">
+    <Link
+      href="/you/posts"
+      className="quick-posts-box"
+      style={
+        primaryHex
+          ? {
+              borderColor: `${primaryHex}59`,
+              ["--energy" as string]: primaryHex,
+            }
+          : undefined
+      }
+    >
       <p className="quick-posts-kicker">Quick social posts</p>
       <strong>Click here</strong>
       <span className="quick-posts-sites">{labels}</span>

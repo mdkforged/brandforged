@@ -22,6 +22,8 @@ export default function QuickSocialPostsPage() {
     typeof answers?.contentStyle === "string" && answers.contentStyle.trim()
       ? answers.contentStyle.trim()
       : null;
+  const primaryHex =
+    answers?.primaryHex || answers?.kit?.tokens?.primaryHex || undefined;
   const templates = useMemo(() => templatesForSites(sites), [sites]);
 
   return (
@@ -62,7 +64,12 @@ export default function QuickSocialPostsPage() {
               key={`${item.siteId}-${item.title}`}
               role="listitem"
             >
-              <p className="template-site">{labelForSite(item.siteId)}</p>
+              <p
+                className="template-site"
+                style={primaryHex ? { color: primaryHex } : undefined}
+              >
+                {labelForSite(item.siteId)}
+              </p>
               <h2>{item.title}</h2>
               <p className="template-format">{item.format}</p>
               <p>{item.prompt}</p>

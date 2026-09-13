@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import type { CSSProperties } from "react";
 import {
   ctaForFirstMake,
   routeForFirstMake,
@@ -11,6 +12,14 @@ export function YouHomeGreeting() {
   const answers = useOnboardingAnswers();
   const brandName = answers?.brandName?.trim() || answers?.aboutYou?.trim();
   const firstMake = answers?.firstMake;
+  const primaryHex = answers?.primaryHex || answers?.kit?.tokens?.primaryHex;
+
+  const energyStyle = primaryHex
+    ? ({
+        "--energy": primaryHex,
+        "--energy-soft": `${primaryHex}33`,
+      } as CSSProperties)
+    : undefined;
 
   if (!brandName) {
     return (
@@ -28,7 +37,7 @@ export function YouHomeGreeting() {
   }
 
   return (
-    <div className="page-intro">
+    <div className="page-intro" style={energyStyle}>
       <div>
         <p className="eyebrow">This is You</p>
         <h1>{brandName}</h1>
