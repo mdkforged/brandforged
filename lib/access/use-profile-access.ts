@@ -22,6 +22,8 @@ export function useProfileAccess() {
   const [profile, setProfile] = useState<ProfileAccess>(EMPTY);
   const [ready, setReady] = useState(false);
   const [signedIn, setSignedIn] = useState(false);
+  const [email, setEmail] = useState<string | null>(null);
+  const [displayName, setDisplayName] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -37,18 +39,26 @@ export function useProfileAccess() {
       } = await supabase.auth.getUser();
       if (!user) {
         setSignedIn(false);
+        setEmail(null);
+        setDisplayName(null);
         setProfile(EMPTY);
         setReady(true);
         return;
       }
       setSignedIn(true);
+      setEmail(user.email ?? null);
       const { data } = await supabase
         .from("profiles")
         .select(
-          "door_access, account_kind, solution_focus, world_upgrade_requested_at, onboarding_completed_at",
+          "display_name, door_access, account_kind, solution_focus, world_upgrade_requested_at, onboarding_completed_at",
         )
         .eq("id", user.id)
         .maybeSingle();
+      const name =
+        (typeof data?.display_name === "string" && data.display_name.trim()) ||
+        user.email ||
+        null;
+      setDisplayName(name);
       setProfile({
         door_access: data?.door_access === "both" ? "both" : "you",
         account_kind: (data?.account_kind as ProfileAccess["account_kind"]) ?? null,
@@ -59,6 +69,8 @@ export function useProfileAccess() {
       });
     } catch {
       setProfile(EMPTY);
+      setEmail(null);
+      setDisplayName(null);
     } finally {
       setReady(true);
     }
@@ -92,6 +104,8 @@ export function useProfileAccess() {
   return {
     ready,
     signedIn,
+    email,
+    displayName,
     busy,
     error,
     profile,

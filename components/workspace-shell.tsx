@@ -1,9 +1,10 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { useState } from "react";
 import { useProfileAccess } from "@/lib/access/use-profile-access";
+import { createClient } from "@/lib/auth/supabase/client";
 import {
   hasFinishedStart,
   useOnboardingAnswers,
@@ -21,12 +22,32 @@ type WorkspaceShellProps = {
 
 export function WorkspaceShell({ children }: WorkspaceShellProps) {
   const pathname = usePathname();
-  const { signedIn, ready: authReady, onboardingDone } = useProfileAccess();
+  const router = useRouter();
+  const {
+    signedIn,
+    ready: authReady,
+    onboardingDone,
+    displayName,
+    email,
+  } = useProfileAccess();
   const answers = useOnboardingAnswers();
   const setupDone = hasFinishedStart(answers) || onboardingDone;
   const [activeWorkspace, setActiveWorkspace] = useState<WorkspaceSummary>(
     DEFAULT_DEMO_WORKSPACE,
   );
+  const [signingOut, setSigningOut] = useState(false);
+
+  async function handleSignOut() {
+    if (signingOut) return;
+    setSigningOut(true);
+    try {
+      const supabase = createClient();
+      await supabase.auth.signOut();
+      router.refresh();
+    } finally {
+      setSigningOut(false);
+    }
+  }
 
   function cycleWorkspace() {
     const idx = DEMO_WORKSPACES.findIndex((w) => w.slug === activeWorkspace.slug);
@@ -92,18 +113,51 @@ export function WorkspaceShell({ children }: WorkspaceShellProps) {
         ) : null}
 
         <div className="sidebar-bottom">
-          <Link
-            href={signedIn ? "/" : "/login"}
-            className="user-chip user-chip-link"
-          >
-            <span className="avatar">MD</span>
-            <div>
-              <strong>Mary Diane</strong>
-              <small>
-                {!authReady ? "…" : signedIn ? "Signed in" : "Sign in"}
-              </small>
+          {!authReady ? (
+            <div className="user-chip">
+              <span className="avatar">?</span>
+              <div>
+                <strong>Account</strong>
+                <small>...</small>
+              </div>
             </div>
-          </Link>
+          ) : signedIn ? (
+            <div className="user-chip-row">
+              <Link href="/you" className="user-chip user-chip-link">
+                <span className="avatar">
+                  {(displayName || email || "Signed in")
+                    .split(/\s+/)
+                    .filter(Boolean)
+                    .slice(0, 2)
+                    .map((part) => part[0]?.toUpperCase() ?? "")
+                    .join("") || "IN"}
+                </span>
+                <div>
+                  <strong>{displayName || email || "Signed in"}</strong>
+                  <small>Signed in</small>
+                </div>
+              </Link>
+              <button
+                type="button"
+                className="user-sign-out"
+                onClick={() => void handleSignOut()}
+                disabled={signingOut}
+              >
+                {signingOut ? "..." : "Sign out"}
+              </button>
+            </div>
+          ) : (
+            <Link
+              href={`/login?next=${encodeURIComponent(pathname || "/")}`}
+              className="user-chip user-chip-link"
+            >
+              <span className="avatar">?</span>
+              <div>
+                <strong>Account</strong>
+                <small>Sign in</small>
+              </div>
+            </Link>
+          )}
         </div>
       </aside>
 
