@@ -22,6 +22,7 @@ function LoginForm() {
   const nextPath = searchParams.get("next") || "/";
   const configured = useMemo(() => isAuthConfigured(), []);
   const [mode, setMode] = useState<Mode>("signin");
+  const [signupStep, setSignupStep] = useState(1);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [accountKind, setAccountKind] = useState<AccountKind | null>(null);
@@ -37,10 +38,6 @@ function LoginForm() {
   function pickAccountKind() {
     setAccountKind(DEFAULT_ACCOUNT_KIND);
     setPickedKind(true);
-    if (!solutionFocus) {
-      setSolutionFocus(defaultSolutionFocus(DEFAULT_ACCOUNT_KIND));
-      setPickedFocus(true);
-    }
   }
 
   function pickSolutionFocus() {
@@ -52,20 +49,32 @@ function LoginForm() {
   async function onSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     if (!configured) return;
-    if (mode === "signup") {
+
+    if (mode === "signup" && signupStep === 1) {
+      if (!email.trim() || !password) {
+        setError("Add your email and password to continue.");
+        return;
+      }
+      setError(null);
+      setSignupStep(2);
+      return;
+    }
+
+    if (mode === "signup" && signupStep === 2) {
       if (!accountKind) {
         setError(
-          "Tell us if this is for an individual or a business â€” or tap You pick for me.",
+          "Tell us if this is for an individual or a business - or tap You pick for me.",
         );
         return;
       }
       if (!solutionFocus) {
         setError(
-          "Tell us if you want all branding or the all-in-one business solution â€” or tap You pick for me.",
+          "Tell us if you want all branding or the all-in-one business solution - or tap You pick for me.",
         );
         return;
       }
     }
+
     setPending(true);
     setError(null);
     setInfo(null);
@@ -92,9 +101,10 @@ function LoginForm() {
           return;
         }
         setInfo(
-          "Account created. If email confirm is on, check your inbox â€” or ask your builder to confirm you.",
+          "Account created. If email confirm is on, check your inbox - or ask your builder to confirm you.",
         );
         setMode("signin");
+        setSignupStep(1);
         return;
       }
 
@@ -152,6 +162,7 @@ function LoginForm() {
                 className={mode === "signin" ? "is-active" : undefined}
                 onClick={() => {
                   setMode("signin");
+                  setSignupStep(1);
                   setError(null);
                   setInfo(null);
                 }}
@@ -165,6 +176,7 @@ function LoginForm() {
                 className={mode === "signup" ? "is-active" : undefined}
                 onClick={() => {
                   setMode("signup");
+                  setSignupStep(1);
                   setError(null);
                   setInfo(null);
                 }}
@@ -173,31 +185,43 @@ function LoginForm() {
               </button>
             </div>
 
-            <form className="login-form" onSubmit={onSubmit}>
-              <label className="login-field">
-                <span>Email</span>
-                <input
-                  type="email"
-                  required
-                  autoComplete="email"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                />
-              </label>
-              <label className="login-field">
-                <span>Password</span>
-                <input
-                  type="password"
-                  required
-                  autoComplete={
-                    mode === "signup" ? "new-password" : "current-password"
-                  }
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                />
-              </label>
+            {mode === "signup" ? (
+              <p className="step-pill">
+                Step {signupStep} of 2
+                {" Â· "}
+                {signupStep === 1 ? "Account" : "What you're building"}
+              </p>
+            ) : null}
 
-              {mode === "signup" ? (
+            <form className="login-form" onSubmit={onSubmit}>
+              {mode === "signin" || signupStep === 1 ? (
+                <>
+                  <label className="login-field">
+                    <span>Email</span>
+                    <input
+                      type="email"
+                      required
+                      autoComplete="email"
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
+                    />
+                  </label>
+                  <label className="login-field">
+                    <span>Password</span>
+                    <input
+                      type="password"
+                      required
+                      autoComplete={
+                        mode === "signup" ? "new-password" : "current-password"
+                      }
+                      value={password}
+                      onChange={(e) => setPassword(e.target.value)}
+                    />
+                  </label>
+                </>
+              ) : null}
+
+              {mode === "signup" && signupStep === 2 ? (
                 <>
                   <div className="account-kind">
                     <div className="field-head">
@@ -231,7 +255,7 @@ function LoginForm() {
                       >
                         <strong>Individual</strong>
                         <span>
-                          Personal brand, artist, creator â€” This is You first.
+                          Personal brand, artist, creator - This is You first.
                         </span>
                       </button>
                       <button
@@ -250,7 +274,7 @@ function LoginForm() {
                       >
                         <strong>Business</strong>
                         <span>
-                          Company or team â€” still starts on This is You; Your
+                          Company or team - still starts on This is You; Your
                           World is an upgrade.
                         </span>
                       </button>
@@ -294,7 +318,7 @@ function LoginForm() {
                       >
                         <strong>All branding</strong>
                         <span>
-                          Look, voice, posts â€” This is You, forged around you.
+                          Look, voice, posts - This is You, forged around you.
                         </span>
                       </button>
                       <button
@@ -313,8 +337,8 @@ function LoginForm() {
                       >
                         <strong>All-in-one business</strong>
                         <span>
-                          Branding plus the business side â€” Your World when you
-                          upgrade.
+                          Branding plus the business side - request Your World
+                          when you&apos;re ready.
                         </span>
                       </button>
                     </div>
@@ -323,7 +347,7 @@ function LoginForm() {
                         ? accountKind === "business"
                           ? "We picked all-in-one for a business. Change it anytime."
                           : "We picked all branding. Change it if you want the full business solution."
-                        : "Next after business or individual â€” so we know what to build toward."}
+                        : "So we know whether to aim at look-and-posts, or the full business path."}
                     </small>
                   </div>
                 </>
@@ -336,13 +360,36 @@ function LoginForm() {
               ) : null}
               {info ? <p className="login-info">{info}</p> : null}
 
-              <button className="login-submit" type="submit" disabled={pending}>
-                {pending
-                  ? "Workingâ€¦"
-                  : mode === "signup"
-                    ? "Create account"
-                    : "Sign in"}
-              </button>
+              {mode === "signup" && signupStep === 2 ? (
+                <div className="step-actions">
+                  <button
+                    type="button"
+                    className="step-back"
+                    onClick={() => setSignupStep(1)}
+                  >
+                    Back
+                  </button>
+                  <button
+                    className="login-submit"
+                    type="submit"
+                    disabled={pending}
+                  >
+                    {pending ? "Working..." : "Create account"}
+                  </button>
+                </div>
+              ) : (
+                <button
+                  className="login-submit"
+                  type="submit"
+                  disabled={pending}
+                >
+                  {pending
+                    ? "Working..."
+                    : mode === "signup"
+                      ? "Continue"
+                      : "Sign in"}
+                </button>
+              )}
             </form>
           </>
         )}
@@ -357,7 +404,7 @@ export default function LoginPage() {
       fallback={
         <main className="login-page">
           <div className="login-card">
-            <p className="login-copy">Loadingâ€¦</p>
+            <p className="login-copy">Loading...</p>
           </div>
         </main>
       }

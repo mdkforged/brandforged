@@ -9,7 +9,6 @@ export type HomeDoor = {
 
 /**
  * Locked home CTAs (DR-003). Labels are user-facing and must stay plain.
- * Forge-era names do not belong here.
  * Access: everyone starts with This is You; Your World is an upgrade (DR-008).
  */
 export const HOME_DOORS: readonly HomeDoor[] = [
@@ -29,8 +28,13 @@ export const HOME_DOORS: readonly HomeDoor[] = [
 
 export const WORLD_UPGRADE_COPY = {
   badge: "Upgrade",
-  summary: "Your World unlocks when you're ready for the business side.",
-  cta: "Your World is an upgrade — ask us to open it.",
+  summary: "People, money, and campaigns - unlock when you're ready.",
+  cta: "Open Your World",
+  requesting: "Sending request...",
+  requested: "Request sent - we'll open Your World for you.",
+  signedOut: "Sign in to request Your World.",
+  allInOneHint:
+    "You chose all-in-one at signup - request Your World whenever you're ready.",
 } as const;
 
 export function doorByHref(pathname: string): HomeDoor | undefined {
