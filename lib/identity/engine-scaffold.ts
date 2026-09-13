@@ -1,154 +1,181 @@
 /**
- * Playbook Identity Engine first-session scaffold (DR-2026-09-13-010).
- * Lifecycle from Master Playbook 2.8 — not an invented quiz bank.
- * Detailed Brand Onboarding shelf questions TBD when shelves hydrate.
+ * Canon Identity Engine / Brand Onboarding (DR-011).
+ * Source: Master Brand System v1.0 section 2.3 Input Set + Workflow 4.2.
  */
 
-export type IdentityStage =
-  | "discovery"
-  | "generation"
-  | "review"
-  | "approval"
-  | "activation";
+export type LogoStylePreference = "wordmark" | "icon" | "combo";
+export type ColorPreference = "warm" | "cool" | "neutral" | "bold" | "";
 
-export const IDENTITY_STAGES: readonly IdentityStage[] = [
-  "discovery",
-  "generation",
-  "review",
-  "approval",
-  "activation",
+/** Workflow 4.2 stages */
+export type OnboardingStage =
+  | "brief"
+  | "engine_run"
+  | "kit_review"
+  | "sticker_book"
+  | "first_template"
+  | "export_publish"
+  | "brand_vault";
+
+export const ONBOARDING_STAGES: readonly OnboardingStage[] = [
+  "brief",
+  "engine_run",
+  "kit_review",
+  "sticker_book",
+  "first_template",
+  "export_publish",
+  "brand_vault",
 ] as const;
 
-export const IDENTITY_STAGE_LABEL: Record<IdentityStage, string> = {
-  discovery: "Discovery",
-  generation: "Generation",
-  review: "Review",
-  approval: "Approval",
-  activation: "Activation",
+export const ONBOARDING_STAGE_LABEL: Record<OnboardingStage, string> = {
+  brief: "Welcome and Brief",
+  engine_run: "Identity Engine Run",
+  kit_review: "Brand Kit Review",
+  sticker_book: "Sticker Book Activated",
+  first_template: "First Template",
+  export_publish: "Export and Publish",
+  brand_vault: "Brand Vault Saved",
 };
 
-export type IdentityKit = {
-  /** Brand Identity — Playbook */
+/** 5-question Brand Input Set (+ optional color) */
+export type BrandInputSet = {
   brandName: string;
-  audience: string;
   industry: string;
-  /** Communication / visual cues we already collect */
-  contentStyle: string;
-  referencePhotos: [string, string, string];
-  socialSites: string[];
-  /** Interim visual defaults until full Identity Engine generation exists */
-  interimPalette: "forge-green";
-  interimLogo: "/brand/logo-forge-green.webp";
-  /** Lifecycle */
-  stage: IdentityStage;
+  audience: string;
+  moodWords: string;
+  logoStyle: LogoStylePreference;
+  colorPreference: ColorPreference;
+};
+
+export type BrandKitDraft = {
+  paletteLabel: string;
+  typographyLabel: string;
+  logoLabel: string;
+  voiceLabel: string;
+  templatePackLabel: string;
+  styleGuideLabel: string;
+};
+
+export type IdentitySession = {
+  input: BrandInputSet;
+  kit: BrandKitDraft;
+  stage: OnboardingStage;
   approved: boolean;
-  activated: boolean;
-  activatedAt?: string;
-  pickedForYou?: {
-    brandName?: boolean;
-    audience?: boolean;
-    industry?: boolean;
-    contentStyle?: boolean;
-    photos?: boolean;
-    socialSites?: boolean;
-    approval?: boolean;
-  };
+  vaultSaved: boolean;
+  pickedForYou?: Partial<Record<keyof BrandInputSet | "approval", boolean>>;
+  socialSites?: string[];
+  referencePhotos?: [string, string, string];
   savedAt: string;
+  activatedAt?: string;
 };
 
 export const IDENTITY_STORAGE_KEY = "bf-identity-v1";
-/** Keep reading old onboarding key for one release */
 export const LEGACY_ONBOARDING_STORAGE_KEY = "bf-onboarding-v1";
-
 export const IDENTITY_ROUTE_AFTER_ACTIVATION = "/you" as const;
-export const REFERENCE_PHOTO_COUNT = 3;
 
-/** You pick for me defaults — plain, reversible, not fake research. */
-export const IDENTITY_PICKS = {
-  brandName: "Tethered & Truth",
-  audience: "Fans and listeners who want honest music and real stories",
+export const BRAND_INPUT_PICKS: BrandInputSet = {
+  brandName: "Tethered and Truth",
   industry: "Music and personal brand",
-  contentStyle:
-    "Raw and honest - cinematic photos, real quotes, music-led videos, posts that feel like journal pages.",
-  referencePhotos: [
-    "/brand/logo-forge-green.webp",
-    "/brand/logo-lumina-purple.webp",
-    "/brand/logo-sapphire-blue-ember.webp",
-  ] as [string, string, string],
-} as const;
+  audience:
+    "Fans and listeners who want honest music, real stories, and cinematic posts.",
+  moodWords: "raw, honest, cinematic, warm, bold",
+  logoStyle: "combo",
+  colorPreference: "cool",
+};
+
+export const LOGO_STYLE_OPTIONS: {
+  id: LogoStylePreference;
+  label: string;
+  detail: string;
+}[] = [
+  { id: "wordmark", label: "Wordmark", detail: "Name as the mark." },
+  { id: "icon", label: "Icon", detail: "Symbol-first mark." },
+  { id: "combo", label: "Combo", detail: "Icon + wordmark together." },
+];
+
+export const COLOR_PREF_OPTIONS: {
+  id: Exclude<ColorPreference, "">;
+  label: string;
+}[] = [
+  { id: "warm", label: "Warm" },
+  { id: "cool", label: "Cool" },
+  { id: "neutral", label: "Neutral" },
+  { id: "bold", label: "Bold" },
+];
 
 export const IDENTITY_COPY = {
-  title: "Identity Engine",
+  title: "Brand Onboarding",
   subtitle:
-    "We'll forge your kit in Playbook order. Stuck? Tap You pick for me on any one.",
+    "Five questions. Then we forge your kit. Stuck? Tap You pick for me.",
   pickForMe: "You pick for me",
   pickAll: "You pick for me on everything",
   continue: "Continue",
   back: "Back",
-  brandNameLabel: "Brand name",
-  brandNameHint: "Your name, stage name, or business - whatever you call it.",
-  brandNamePlaceholder: "e.g. Tethered & Truth",
-  audienceLabel: "Who is this for?",
-  audienceHint: "Audience in plain words - Playbook Brand Identity.",
-  audiencePlaceholder: "e.g. fans who want honest music",
-  industryLabel: "Industry",
-  industryHint: "Where you create and sell - Playbook Brand Identity.",
-  industryPlaceholder: "e.g. Music and personal brand",
-  contentStyleLabel: "Content style",
-  contentStyleHint:
-    "How you show up in photos, quotes, videos, posts - in your words.",
-  contentStylePlaceholder:
-    "e.g. raw and honest, bright and bold, quiet and cinematic",
-  photosLabel: "Reference look",
-  photosHint:
-    "3 reference photos for photography style - or Brand Forged marks until you swap them.",
-  photoSlotLabels: ["Photo 1", "Photo 2", "Photo 3"] as const,
-  socialLabel: "Social sites",
-  socialHint: "Where this identity will post - feeds Quick social templates.",
-  reviewTitle: "Your kit (draft)",
-  reviewHint:
-    "Playbook Review - check the kit before approval. Nothing publishes yet.",
-  approveLabel: "Approve this identity kit?",
-  approveHint:
-    "Playbook Approval - required before Activation. You pick for me = approve.",
+  brandNameLabel: "1. Brand name",
+  industryLabel: "2. Industry / niche",
+  audienceLabel: "3. Audience (1-2 sentences)",
+  moodLabel: "4. Mood words (3-5 keywords)",
+  logoLabel: "5. Logo style preference",
+  colorLabel: "Color preference (optional)",
+  engineRunTitle: "Generating your brand kit",
+  engineRunBody:
+    "Identity Engine Run - locked palette, type, logo set, voice guide, and template pack from your brief.",
+  reviewTitle: "Brand Kit Review",
+  reviewHint: "Approve palette, fonts, and logo before stickers activate.",
   approveYes: "Approve kit",
-  activateLabel: "Activate",
-  activateHint:
-    "Playbook Activation - this becomes the working identity for This is You.",
-  activateCta: "Activate and open This is You",
-  activating: "Activating...",
-  firstSessionNote:
-    "First-session promise: kit → approve look → templates → Brand Vault. Full shelf questions land when Brand Onboarding files hydrate.",
+  stickerTitle: "Sticker Book Activated",
+  stickerBody:
+    "Stickers will auto-skin to your approved tokens. Full canvas ships with the Sticker Book engine.",
+  templateTitle: "First Template",
+  templateBody:
+    "Create your first branded post from palette-locked templates.",
+  templateCta: "Open Quick social posts",
+  exportTitle: "Export and Publish",
+  exportBody:
+    "Export Router will send assets to platform destinations after Palette Enforcement.",
+  vaultTitle: "Brand Vault Saved",
+  vaultBody: "Archive this kit to your Brand Vault and open This is You.",
+  vaultCta: "Save to Brand Vault",
+  saving: "Saving...",
+  pipelineNote:
+    "Pipeline: Brand Input -> Identity Engine -> Photo Transformation -> Palette Enforcement -> Sticker Book -> Export Router -> Brand Vault",
 } as const;
 
-export function stageIndex(stage: IdentityStage): number {
-  return IDENTITY_STAGES.indexOf(stage);
+/** Deterministic draft kit until real generation exists - derived from Input Set only. */
+export function draftKitFromInput(input: BrandInputSet): BrandKitDraft {
+  const mood = input.moodWords.trim() || "clear, confident";
+  const color = input.colorPreference || "neutral";
+  return {
+    paletteLabel: `Draft palette (${color}) for ${input.brandName}`,
+    typographyLabel: `Type system tuned to mood: ${mood}`,
+    logoLabel: `Logo set - ${input.logoStyle} style`,
+    voiceLabel: `Voice guide for ${input.industry} / ${input.audience.slice(0, 80)}`,
+    templatePackLabel: "Social template pack (palette-locked)",
+    styleGuideLabel: "One-page style guide (PDF pending engine)",
+  };
 }
 
-export function nextStage(stage: IdentityStage): IdentityStage | null {
+export function stageIndex(stage: OnboardingStage): number {
+  return ONBOARDING_STAGES.indexOf(stage);
+}
+
+export function nextStage(stage: OnboardingStage): OnboardingStage | null {
   const i = stageIndex(stage);
-  if (i < 0 || i >= IDENTITY_STAGES.length - 1) return null;
-  return IDENTITY_STAGES[i + 1]!;
+  if (i < 0 || i >= ONBOARDING_STAGES.length - 1) return null;
+  return ONBOARDING_STAGES[i + 1]!;
 }
 
-export function prevStage(stage: IdentityStage): IdentityStage | null {
+export function prevStage(stage: OnboardingStage): OnboardingStage | null {
   const i = stageIndex(stage);
   if (i <= 0) return null;
-  return IDENTITY_STAGES[i - 1]!;
+  return ONBOARDING_STAGES[i - 1]!;
 }
 
-export async function fileToReferenceDataUrl(file: File): Promise<string> {
-  const bitmap = await createImageBitmap(file);
-  const maxEdge = 720;
-  const scale = Math.min(1, maxEdge / Math.max(bitmap.width, bitmap.height));
-  const width = Math.max(1, Math.round(bitmap.width * scale));
-  const height = Math.max(1, Math.round(bitmap.height * scale));
-  const canvas = document.createElement("canvas");
-  canvas.width = width;
-  canvas.height = height;
-  const ctx = canvas.getContext("2d");
-  if (!ctx) throw new Error("Could not prepare photo");
-  ctx.drawImage(bitmap, 0, 0, width, height);
-  bitmap.close();
-  return canvas.toDataURL("image/jpeg", 0.82);
+export function briefReady(input: BrandInputSet): boolean {
+  return (
+    input.brandName.trim().length > 0 &&
+    input.industry.trim().length > 0 &&
+    input.audience.trim().length > 0 &&
+    input.moodWords.trim().length > 0 &&
+    Boolean(input.logoStyle)
+  );
 }
