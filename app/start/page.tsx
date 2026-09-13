@@ -11,12 +11,12 @@ import { useRouter } from "next/navigation";
 import { getEnergyStrike } from "@/lib/brand/energy-strike";
 import {
   ONBOARDING_COPY,
+  ONBOARDING_LOCKED_GOAL,
   ONBOARDING_PICKS,
+  ONBOARDING_ROUTE_AFTER_SETUP,
   ONBOARDING_STORAGE_KEY,
   REFERENCE_PHOTO_COUNT,
   fileToReferenceDataUrl,
-  pathForGoal,
-  type OnboardingGoal,
   type SocialSiteId,
 } from "@/lib/onboarding/questions";
 import { SOCIAL_SITES } from "@/lib/onboarding/social";
@@ -29,7 +29,6 @@ type PickedMap = {
   contentStyle: boolean;
   photos: boolean;
   socialSites: boolean;
-  goal: boolean;
 };
 
 export default function StartPage() {
@@ -44,14 +43,12 @@ export default function StartPage() {
   ]);
   const [socialSites, setSocialSites] = useState<SocialSiteId[]>([]);
   const [photoError, setPhotoError] = useState<string | null>(null);
-  const [goal, setGoal] = useState<OnboardingGoal | null>(null);
   const [picked, setPicked] = useState<PickedMap>({
     aboutYou: false,
     whyHere: false,
     contentStyle: false,
     photos: false,
     socialSites: false,
-    goal: false,
   });
   const [pending, setPending] = useState(false);
 
@@ -67,7 +64,6 @@ export default function StartPage() {
   const photosReady = photos.every((p) => Boolean(p));
   const socialReady = socialSites.length > 0;
   const canSubmit =
-    Boolean(goal) &&
     aboutYou.trim().length > 0 &&
     whyHere.trim().length > 0 &&
     contentStyle.trim().length > 0 &&
@@ -100,18 +96,12 @@ export default function StartPage() {
     setPicked((p) => ({ ...p, socialSites: true }));
   }
 
-  function pickGoal() {
-    setGoal(ONBOARDING_PICKS.goal);
-    setPicked((p) => ({ ...p, goal: true }));
-  }
-
   function pickEverything() {
     setAboutYou(ONBOARDING_PICKS.aboutYou);
     setWhyHere(ONBOARDING_PICKS.whyHere);
     setContentStyle(ONBOARDING_PICKS.contentStyle);
     setPhotos([...ONBOARDING_PICKS.referencePhotos]);
     setSocialSites([...ONBOARDING_PICKS.socialSites]);
-    setGoal(ONBOARDING_PICKS.goal);
     setPhotoError(null);
     setPicked({
       aboutYou: true,
@@ -119,7 +109,6 @@ export default function StartPage() {
       contentStyle: true,
       photos: true,
       socialSites: true,
-      goal: true,
     });
   }
 
@@ -170,7 +159,6 @@ export default function StartPage() {
   function onSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     if (
-      !goal ||
       !aboutYou.trim() ||
       !whyHere.trim() ||
       !contentStyle.trim() ||
@@ -187,7 +175,7 @@ export default function StartPage() {
       contentStyle: contentStyle.trim(),
       referencePhotos,
       socialSites,
-      goal,
+      goal: ONBOARDING_LOCKED_GOAL,
       pickedForYou: picked,
       savedAt: new Date().toISOString(),
     };
@@ -200,7 +188,7 @@ export default function StartPage() {
       );
       return;
     }
-    router.replace(pathForGoal(goal));
+    router.replace(ONBOARDING_ROUTE_AFTER_SETUP);
   }
 
   return (
@@ -399,44 +387,6 @@ export default function StartPage() {
               })}
             </div>
           </div>
-
-          <fieldset className="goal-fieldset">
-            <div className="field-head goal-head">
-              <legend>{ONBOARDING_COPY.goalLabel}</legend>
-              <button type="button" className="pick-one" onClick={pickGoal}>
-                {ONBOARDING_COPY.pickForMe}
-              </button>
-            </div>
-            <div
-              className="goal-options"
-              role="radiogroup"
-              aria-label={ONBOARDING_COPY.goalLabel}
-            >
-              {ONBOARDING_COPY.goals.map((option) => (
-                <button
-                  key={option.id}
-                  type="button"
-                  role="radio"
-                  aria-checked={goal === option.id}
-                  className={
-                    goal === option.id ? "goal-option is-active" : "goal-option"
-                  }
-                  onClick={() => {
-                    setGoal(option.id);
-                    setPicked((p) => ({ ...p, goal: false }));
-                  }}
-                >
-                  <strong>{option.label}</strong>
-                  <span>{option.detail}</span>
-                </button>
-              ))}
-            </div>
-            {picked.goal ? (
-              <small className="field-hint">
-                We chose Both so both doors are ready.
-              </small>
-            ) : null}
-          </fieldset>
 
           <button
             className="login-submit"

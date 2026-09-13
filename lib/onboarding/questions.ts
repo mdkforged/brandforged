@@ -9,7 +9,10 @@ export type OnboardingAnswers = {
   aboutYou: string;
   /** Why they're here / what they're looking to do. */
   whyHere: string;
-  /** What we should set up for them first. */
+  /**
+   * Where we open after setup — Brand Forged chooses this (never a user pick).
+   * Always both doors / home for v1.
+   */
   goal: OnboardingGoal;
   /** Content style — photos, quotes, videos, posts (one plain ask). */
   contentStyle: string;
@@ -27,13 +30,19 @@ export type OnboardingAnswers = {
     contentStyle?: boolean;
     photos?: boolean;
     socialSites?: boolean;
-    goal?: boolean;
   };
   savedAt: string;
 };
 
 export const ONBOARDING_STORAGE_KEY = "bf-onboarding-v1";
 export const REFERENCE_PHOTO_COUNT = 3;
+
+/**
+ * Brand Forged chooses setup order — not the user.
+ * After /start we always open home with both doors ready.
+ */
+export const ONBOARDING_ROUTE_AFTER_SETUP = "/" as const;
+export const ONBOARDING_LOCKED_GOAL: OnboardingGoal = "both";
 
 /** Solid defaults when they tap "You pick for me" on any ask. */
 export const ONBOARDING_PICKS = {
@@ -48,13 +57,13 @@ export const ONBOARDING_PICKS = {
     "/brand/logo-sapphire-blue-ember.webp",
   ] as [string, string, string],
   socialSites: SOCIAL_PICK_DEFAULTS as SocialSiteId[],
-  goal: "both" as OnboardingGoal,
 } as const;
 
 /**
  * Quick direct questions. Answers make Brand Forged work for the client —
  * we set things up; they don't fill a long form (DR-004).
  * Every ask has "You pick for me" so they are never stuck without an answer.
+ * Setup order is ours — never offered as a choice.
  */
 export const ONBOARDING_COPY = {
   title: "A couple of quick questions",
@@ -81,33 +90,9 @@ export const ONBOARDING_COPY = {
   socialLabel: "What social sites will you be using?",
   socialHint:
     "Check the ones you post on. Quick social posts will open templates for each.",
-  goalLabel: "What should we set up for you first?",
-  goals: [
-    {
-      id: "you" as const,
-      label: "This is You",
-      detail: "Voice, look, and what you want to say.",
-    },
-    {
-      id: "world" as const,
-      label: "Your World",
-      detail: "People, work, and running the business side.",
-    },
-    {
-      id: "both" as const,
-      label: "Both",
-      detail: "We'll open home with both doors ready.",
-    },
-  ],
   submit: "Set it up for me",
   submitting: "Setting up…",
 } as const;
-
-export function pathForGoal(goal: OnboardingGoal): "/" | "/you" | "/world" {
-  if (goal === "you") return "/you";
-  if (goal === "world") return "/world";
-  return "/";
-}
 
 /** Shrink a photo for local lock-in storage (v1). */
 export async function fileToReferenceDataUrl(file: File): Promise<string> {
