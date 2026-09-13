@@ -12,28 +12,29 @@ export function QuickSocialPostsBox() {
       : [];
   const primaryHex =
     answers?.primaryHex || answers?.kit?.tokens?.primaryHex || undefined;
-
-  const labels =
-    sites.length > 0
-      ? sites.map(labelForSite).join(" · ")
-      : "Pick your sites on Get started first";
+  const needsSetup = !answers || sites.length === 0;
 
   return (
     <Link
-      href="/you/posts"
+      href={needsSetup ? "/start" : "/you/posts"}
       className="quick-posts-box"
       style={
         primaryHex
           ? {
               borderColor: `${primaryHex}59`,
               ["--energy" as string]: primaryHex,
+              cursor: "pointer",
             }
-          : undefined
+          : { cursor: "pointer" }
       }
     >
       <p className="quick-posts-kicker">Quick social posts</p>
-      <strong>Click here</strong>
-      <span className="quick-posts-sites">{labels}</span>
+      <strong>{needsSetup ? "Get started" : "Open quick posts"}</strong>
+      <span className="quick-posts-sites">
+        {needsSetup
+          ? "Check the socials you use — then your templates open here"
+          : sites.map(labelForSite).join(" · ")}
+      </span>
     </Link>
   );
 }

@@ -68,8 +68,13 @@ export default function QuickSocialPostsPage() {
         <article className="module-card">
           <h2>No sites yet</h2>
           <p>
-            Go back to <Link href="/start">Get started</Link> and check the
-            social sites you use — or tap You pick for me.
+            Check the social sites you use — or tap You pick for me — then come
+            back for your templates.
+          </p>
+          <p>
+            <Link href="/start" className="door-upgrade-btn">
+              Get started
+            </Link>
           </p>
         </article>
       ) : (

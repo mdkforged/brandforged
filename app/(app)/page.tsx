@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 import { HomeDoorNav } from "@/components/home/home-door-nav";
 
 export const metadata: Metadata = {
@@ -29,6 +30,11 @@ export default function HomePage() {
           <h1>You&apos;re home.</h1>
           <p className="intro-copy">
             Start with This is You. Your World opens when you upgrade.
+          </p>
+          <p>
+            <Link href="/start" className="door-upgrade-btn">
+              Get started
+            </Link>
           </p>
         </div>
       </div>

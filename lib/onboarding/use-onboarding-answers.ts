@@ -39,8 +39,13 @@ function subscribe(onStoreChange: () => void) {
       onStoreChange();
     }
   };
+  const onFocus = () => onStoreChange();
   window.addEventListener("storage", onStorage);
-  return () => window.removeEventListener("storage", onStorage);
+  window.addEventListener("focus", onFocus);
+  return () => {
+    window.removeEventListener("storage", onStorage);
+    window.removeEventListener("focus", onFocus);
+  };
 }
 
 function getSnapshot() {
@@ -81,6 +86,14 @@ function parseFirstMake(value: unknown): FirstMakeChoice | undefined {
     : undefined;
 }
 
+function normalizeReferencePhotos(value: unknown): [string, string, string] {
+  if (!Array.isArray(value)) return ["", "", ""];
+  const asStrings = value.map((item) =>
+    typeof item === "string" ? item : "",
+  );
+  return [asStrings[0] || "", asStrings[1] || "", asStrings[2] || ""];
+}
+
 function toAnswers(raw: string): OnboardingAnswers | null {
   try {
     const parsed = JSON.parse(raw) as StoredBlob;
@@ -95,14 +108,22 @@ function toAnswers(raw: string): OnboardingAnswers | null {
       parsed.contentStyle ||
       (input && input.moodWords) ||
       "";
-    const referencePhotos = parsed.referencePhotos;
-    const socialSites = parsed.socialSites;
+    const referencePhotos = normalizeReferencePhotos(parsed.referencePhotos);
+    const socialSites = Array.isArray(parsed.socialSites)
+      ? (parsed.socialSites as SocialSiteId[])
+      : [];
     const firstMake = parseFirstMake(parsed.firstMake);
-    if (!aboutYou.trim()) return null;
-    if (!Array.isArray(referencePhotos) || referencePhotos.length !== 3) {
-      return null;
-    }
-    if (!Array.isArray(socialSites)) return null;
+    const kit = parsed.kit;
+    const activated = Boolean(parsed.activatedAt || parsed.vaultSaved);
+
+    const hasSomething =
+      Boolean(aboutYou.trim()) ||
+      Boolean(input) ||
+      Boolean(kit) ||
+      socialSites.length > 0 ||
+      activated;
+
+    if (!hasSomething) return null;
 
     const session: IdentitySession | undefined =
       input && parsed.kit && parsed.stage
@@ -115,13 +136,12 @@ function toAnswers(raw: string): OnboardingAnswers | null {
             firstMake,
             pickedForYou: parsed.pickedForYou as IdentitySession["pickedForYou"],
             socialSites: socialSites as string[],
-            referencePhotos: referencePhotos as [string, string, string],
+            referencePhotos,
             savedAt: parsed.savedAt || parsed.activatedAt || new Date().toISOString(),
             activatedAt: parsed.activatedAt,
           }
         : undefined;
 
-    const kit = parsed.kit;
     const primaryHex =
       kit && kit.tokens && typeof kit.tokens.primaryHex === "string"
         ? kit.tokens.primaryHex
@@ -130,8 +150,8 @@ function toAnswers(raw: string): OnboardingAnswers | null {
     return {
       aboutYou,
       contentStyle,
-      referencePhotos: referencePhotos as [string, string, string],
-      socialSites: socialSites as SocialSiteId[],
+      referencePhotos,
+      socialSites,
       pickedForYou: parsed.pickedForYou as OnboardingAnswers["pickedForYou"],
       savedAt: parsed.savedAt || parsed.activatedAt || new Date().toISOString(),
       brandName: brandName || undefined,

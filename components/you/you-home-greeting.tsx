@@ -13,6 +13,10 @@ export function YouHomeGreeting() {
   const brandName = answers?.brandName?.trim() || answers?.aboutYou?.trim();
   const firstMake = answers?.firstMake;
   const primaryHex = answers?.primaryHex || answers?.kit?.tokens?.primaryHex;
+  const socialSites = Array.isArray(answers?.socialSites)
+    ? answers.socialSites
+    : [];
+  const missingSocials = socialSites.length === 0;
 
   const energyStyle = primaryHex
     ? ({
@@ -28,8 +32,13 @@ export function YouHomeGreeting() {
           <p className="eyebrow">This is You</p>
           <h1>Who you are.</h1>
           <p className="intro-copy">
-            Your voice, your look, your ideas. Nothing to set up. We&apos;ll gather
-            this as we go so you can stay with the work that matters.
+            You haven&apos;t set up your brand yet. Hit Get started to name your
+            brand, pick your socials, and unlock your workspace.
+          </p>
+          <p>
+            <Link href="/start" className="door-upgrade-btn">
+              Get started
+            </Link>
           </p>
         </div>
       </div>
@@ -52,6 +61,13 @@ export function YouHomeGreeting() {
               className="door-upgrade-btn"
             >
               {ctaForFirstMake(firstMake)}
+            </Link>
+          </p>
+        ) : null}
+        {missingSocials ? (
+          <p>
+            <Link href="/start" className="new-button">
+              Pick your socials
             </Link>
           </p>
         ) : null}
