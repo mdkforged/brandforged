@@ -1,10 +1,9 @@
-import Link from "next/link";
 import type { Metadata } from "next";
-import { HOME_DOORS } from "@/lib/home/doors";
+import { HomeDoorNav } from "@/components/home/home-door-nav";
 
 export const metadata: Metadata = {
   title: "Home | Brand Forged",
-  description: "Two doors: This is You, and Your World.",
+  description: "This is You — and Your World when you upgrade.",
 };
 
 export default function HomePage() {
@@ -29,23 +28,12 @@ export default function HomePage() {
           <p className="eyebrow">Home</p>
           <h1>You&apos;re home.</h1>
           <p className="intro-copy">
-            Two places. That&apos;s all. Pick one and we&apos;ll take it from there.
+            Start with This is You. Your World opens when you upgrade.
           </p>
         </div>
       </div>
 
-      <div className="home-doors" role="navigation" aria-label="Home">
-        {HOME_DOORS.map((door) => (
-          <Link
-            key={door.id}
-            href={door.href}
-            className={`home-door home-door-${door.id}`}
-          >
-            <h2>{door.label}</h2>
-            <p>{door.summary}</p>
-          </Link>
-        ))}
-      </div>
+      <HomeDoorNav />
     </div>
   );
 }

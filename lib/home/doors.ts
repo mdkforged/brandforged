@@ -10,6 +10,7 @@ export type HomeDoor = {
 /**
  * Locked home CTAs (DR-003). Labels are user-facing and must stay plain.
  * Forge-era names do not belong here.
+ * Access: everyone starts with This is You; Your World is an upgrade (DR-008).
  */
 export const HOME_DOORS: readonly HomeDoor[] = [
   {
@@ -25,6 +26,12 @@ export const HOME_DOORS: readonly HomeDoor[] = [
     summary: "The people and work around what you're building.",
   },
 ];
+
+export const WORLD_UPGRADE_COPY = {
+  badge: "Upgrade",
+  summary: "Your World unlocks when you're ready for the business side.",
+  cta: "Your World is an upgrade — ask us to open it.",
+} as const;
 
 export function doorByHref(pathname: string): HomeDoor | undefined {
   return HOME_DOORS.find((door) => door.href === pathname);

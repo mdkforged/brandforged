@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { WorldAccessGate } from "@/components/home/world-access-gate";
 
 export const metadata: Metadata = {
   title: "Your World | Brand Forged",
@@ -26,7 +27,7 @@ const modules = [
 
 export default function YourWorldPage() {
   return (
-    <>
+    <WorldAccessGate>
       <div className="page-intro">
         <div>
           <p className="eyebrow">Your World</p>
@@ -46,6 +47,6 @@ export default function YourWorldPage() {
           </article>
         ))}
       </div>
-    </>
+    </WorldAccessGate>
   );
 }
