@@ -25,6 +25,7 @@ const PLATFORM_STRIKE = getEnergyStrike("forge-green");
 
 type PickedMap = {
   aboutYou: boolean;
+  whyHere: boolean;
   contentStyle: boolean;
   photos: boolean;
   socialSites: boolean;
@@ -34,6 +35,7 @@ type PickedMap = {
 export default function StartPage() {
   const router = useRouter();
   const [aboutYou, setAboutYou] = useState("");
+  const [whyHere, setWhyHere] = useState("");
   const [contentStyle, setContentStyle] = useState("");
   const [photos, setPhotos] = useState<(string | null)[]>([
     null,
@@ -45,6 +47,7 @@ export default function StartPage() {
   const [goal, setGoal] = useState<OnboardingGoal | null>(null);
   const [picked, setPicked] = useState<PickedMap>({
     aboutYou: false,
+    whyHere: false,
     contentStyle: false,
     photos: false,
     socialSites: false,
@@ -66,6 +69,7 @@ export default function StartPage() {
   const canSubmit =
     Boolean(goal) &&
     aboutYou.trim().length > 0 &&
+    whyHere.trim().length > 0 &&
     contentStyle.trim().length > 0 &&
     photosReady &&
     socialReady;
@@ -73,6 +77,11 @@ export default function StartPage() {
   function pickAboutYou() {
     setAboutYou(ONBOARDING_PICKS.aboutYou);
     setPicked((p) => ({ ...p, aboutYou: true }));
+  }
+
+  function pickWhyHere() {
+    setWhyHere(ONBOARDING_PICKS.whyHere);
+    setPicked((p) => ({ ...p, whyHere: true }));
   }
 
   function pickContentStyle() {
@@ -98,6 +107,7 @@ export default function StartPage() {
 
   function pickEverything() {
     setAboutYou(ONBOARDING_PICKS.aboutYou);
+    setWhyHere(ONBOARDING_PICKS.whyHere);
     setContentStyle(ONBOARDING_PICKS.contentStyle);
     setPhotos([...ONBOARDING_PICKS.referencePhotos]);
     setSocialSites([...ONBOARDING_PICKS.socialSites]);
@@ -105,6 +115,7 @@ export default function StartPage() {
     setPhotoError(null);
     setPicked({
       aboutYou: true,
+      whyHere: true,
       contentStyle: true,
       photos: true,
       socialSites: true,
@@ -161,6 +172,7 @@ export default function StartPage() {
     if (
       !goal ||
       !aboutYou.trim() ||
+      !whyHere.trim() ||
       !contentStyle.trim() ||
       !photosReady ||
       !socialReady
@@ -171,6 +183,7 @@ export default function StartPage() {
     const referencePhotos = photos as [string, string, string];
     const payload = {
       aboutYou: aboutYou.trim(),
+      whyHere: whyHere.trim(),
       contentStyle: contentStyle.trim(),
       referencePhotos,
       socialSites,
@@ -238,6 +251,30 @@ export default function StartPage() {
               {picked.aboutYou
                 ? `We picked “${ONBOARDING_PICKS.aboutYou}.” Change it anytime.`
                 : ONBOARDING_COPY.aboutYouHint}
+            </small>
+          </div>
+
+          <div className="login-field">
+            <div className="field-head">
+              <span>{ONBOARDING_COPY.whyHereLabel}</span>
+              <button type="button" className="pick-one" onClick={pickWhyHere}>
+                {ONBOARDING_COPY.pickForMe}
+              </button>
+            </div>
+            <input
+              type="text"
+              required
+              placeholder={ONBOARDING_COPY.whyHerePlaceholder}
+              value={whyHere}
+              onChange={(e) => {
+                setWhyHere(e.target.value);
+                setPicked((p) => ({ ...p, whyHere: false }));
+              }}
+            />
+            <small className="field-hint">
+              {picked.whyHere
+                ? "We filled a starting intent for you. Edit freely."
+                : ONBOARDING_COPY.whyHereHint}
             </small>
           </div>
 

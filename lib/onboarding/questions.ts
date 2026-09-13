@@ -7,6 +7,8 @@ import { SOCIAL_PICK_DEFAULTS } from "@/lib/onboarding/social";
 export type OnboardingAnswers = {
   /** Who they are / brand name — plain words. */
   aboutYou: string;
+  /** Why they're here / what they're looking to do. */
+  whyHere: string;
   /** What we should set up for them first. */
   goal: OnboardingGoal;
   /** Content style — photos, quotes, videos, posts (one plain ask). */
@@ -21,6 +23,7 @@ export type OnboardingAnswers = {
   /** Which fields Brand Forged chose (DR-004: we work for the user). */
   pickedForYou?: {
     aboutYou?: boolean;
+    whyHere?: boolean;
     contentStyle?: boolean;
     photos?: boolean;
     socialSites?: boolean;
@@ -35,6 +38,8 @@ export const REFERENCE_PHOTO_COUNT = 3;
 /** Solid defaults when they tap "You pick for me" on any ask. */
 export const ONBOARDING_PICKS = {
   aboutYou: "Tethered & Truth",
+  whyHere:
+    "Lock in my look and voice, post without the overwhelm, and keep the business side moving — in one place.",
   contentStyle:
     "Raw and honest — cinematic photos, real quotes, music-led videos, posts that feel like journal pages.",
   referencePhotos: [
@@ -60,6 +65,10 @@ export const ONBOARDING_COPY = {
   aboutYouLabel: "Who are we building for?",
   aboutYouHint: "Your name, stage name, or business — whatever you call it.",
   aboutYouPlaceholder: "e.g. Tethered & Truth",
+  whyHereLabel: "Why are you here?",
+  whyHereHint: "What are you looking to do — in plain words.",
+  whyHerePlaceholder:
+    "e.g. lock in my look, post faster, run the business side",
   contentStyleLabel: "What's your content style?",
   contentStyleHint:
     "How you show up in photos, quotes, videos, posts — in your words.",
