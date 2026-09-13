@@ -55,13 +55,13 @@ function LoginForm() {
     if (mode === "signup") {
       if (!accountKind) {
         setError(
-          "Tell us if this is for an individual or a business — or tap You pick for me.",
+          "Tell us if this is for an individual or a business â€” or tap You pick for me.",
         );
         return;
       }
       if (!solutionFocus) {
         setError(
-          "Tell us if you want all branding or the all-in-one business solution — or tap You pick for me.",
+          "Tell us if you want all branding or the all-in-one business solution â€” or tap You pick for me.",
         );
         return;
       }
@@ -92,7 +92,7 @@ function LoginForm() {
           return;
         }
         setInfo(
-          "Account created. If email confirm is on, check your inbox — or ask your builder to confirm you.",
+          "Account created. If email confirm is on, check your inbox â€” or ask your builder to confirm you.",
         );
         setMode("signin");
         return;
@@ -231,7 +231,7 @@ function LoginForm() {
                       >
                         <strong>Individual</strong>
                         <span>
-                          Personal brand, artist, creator — This is You first.
+                          Personal brand, artist, creator â€” This is You first.
                         </span>
                       </button>
                       <button
@@ -250,7 +250,7 @@ function LoginForm() {
                       >
                         <strong>Business</strong>
                         <span>
-                          Company or team — still starts on This is You; Your
+                          Company or team â€” still starts on This is You; Your
                           World is an upgrade.
                         </span>
                       </button>
@@ -264,7 +264,7 @@ function LoginForm() {
 
                   <div className="account-kind">
                     <div className="field-head">
-                      <span>What do you want?</span>
+                      <span>All branding or all-in-one business?</span>
                       <button
                         type="button"
                         className="pick-one"
@@ -294,7 +294,7 @@ function LoginForm() {
                       >
                         <strong>All branding</strong>
                         <span>
-                          Look, voice, posts — This is You, forged around you.
+                          Look, voice, posts â€” This is You, forged around you.
                         </span>
                       </button>
                       <button
@@ -313,7 +313,7 @@ function LoginForm() {
                       >
                         <strong>All-in-one business</strong>
                         <span>
-                          Branding plus the business side — Your World when you
+                          Branding plus the business side â€” Your World when you
                           upgrade.
                         </span>
                       </button>
@@ -323,7 +323,7 @@ function LoginForm() {
                         ? accountKind === "business"
                           ? "We picked all-in-one for a business. Change it anytime."
                           : "We picked all branding. Change it if you want the full business solution."
-                        : "Next after business or individual — so we know what to build toward."}
+                        : "Next after business or individual â€” so we know what to build toward."}
                     </small>
                   </div>
                 </>
@@ -338,7 +338,7 @@ function LoginForm() {
 
               <button className="login-submit" type="submit" disabled={pending}>
                 {pending
-                  ? "Working…"
+                  ? "Workingâ€¦"
                   : mode === "signup"
                     ? "Create account"
                     : "Sign in"}
@@ -357,7 +357,7 @@ export default function LoginPage() {
       fallback={
         <main className="login-page">
           <div className="login-card">
-            <p className="login-copy">Loading…</p>
+            <p className="login-copy">Loadingâ€¦</p>
           </div>
         </main>
       }

@@ -22,10 +22,10 @@ import {
 import { SOCIAL_SITES } from "@/lib/onboarding/social";
 
 const PLATFORM_STRIKE = getEnergyStrike("forge-green");
+const TOTAL_STEPS = 2;
 
 type PickedMap = {
   aboutYou: boolean;
-  whyHere: boolean;
   contentStyle: boolean;
   photos: boolean;
   socialSites: boolean;
@@ -33,8 +33,8 @@ type PickedMap = {
 
 export default function StartPage() {
   const router = useRouter();
+  const [step, setStep] = useState(1);
   const [aboutYou, setAboutYou] = useState("");
-  const [whyHere, setWhyHere] = useState("");
   const [contentStyle, setContentStyle] = useState("");
   const [photos, setPhotos] = useState<(string | null)[]>([
     null,
@@ -45,7 +45,6 @@ export default function StartPage() {
   const [photoError, setPhotoError] = useState<string | null>(null);
   const [picked, setPicked] = useState<PickedMap>({
     aboutYou: false,
-    whyHere: false,
     contentStyle: false,
     photos: false,
     socialSites: false,
@@ -63,21 +62,13 @@ export default function StartPage() {
 
   const photosReady = photos.every((p) => Boolean(p));
   const socialReady = socialSites.length > 0;
-  const canSubmit =
-    aboutYou.trim().length > 0 &&
-    whyHere.trim().length > 0 &&
-    contentStyle.trim().length > 0 &&
-    photosReady &&
-    socialReady;
+  const step1Ready =
+    aboutYou.trim().length > 0 && contentStyle.trim().length > 0;
+  const canSubmit = step1Ready && photosReady && socialReady;
 
   function pickAboutYou() {
     setAboutYou(ONBOARDING_PICKS.aboutYou);
     setPicked((p) => ({ ...p, aboutYou: true }));
-  }
-
-  function pickWhyHere() {
-    setWhyHere(ONBOARDING_PICKS.whyHere);
-    setPicked((p) => ({ ...p, whyHere: true }));
   }
 
   function pickContentStyle() {
@@ -98,18 +89,17 @@ export default function StartPage() {
 
   function pickEverything() {
     setAboutYou(ONBOARDING_PICKS.aboutYou);
-    setWhyHere(ONBOARDING_PICKS.whyHere);
     setContentStyle(ONBOARDING_PICKS.contentStyle);
     setPhotos([...ONBOARDING_PICKS.referencePhotos]);
     setSocialSites([...ONBOARDING_PICKS.socialSites]);
     setPhotoError(null);
     setPicked({
       aboutYou: true,
-      whyHere: true,
       contentStyle: true,
       photos: true,
       socialSites: true,
     });
+    setStep(2);
   }
 
   function toggleSocial(id: SocialSiteId) {
@@ -156,22 +146,22 @@ export default function StartPage() {
     setPicked((p) => ({ ...p, photos: false }));
   }
 
+  function onContinue() {
+    if (!step1Ready) return;
+    setStep(2);
+  }
+
   function onSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    if (
-      !aboutYou.trim() ||
-      !whyHere.trim() ||
-      !contentStyle.trim() ||
-      !photosReady ||
-      !socialReady
-    ) {
+    if (step === 1) {
+      onContinue();
       return;
     }
+    if (!canSubmit) return;
     setPending(true);
     const referencePhotos = photos as [string, string, string];
     const payload = {
       aboutYou: aboutYou.trim(),
-      whyHere: whyHere.trim(),
       contentStyle: contentStyle.trim(),
       referencePhotos,
       socialSites,
@@ -184,7 +174,7 @@ export default function StartPage() {
     } catch {
       setPending(false);
       setPhotoError(
-        "Those photos are a bit large for this device to keep. Try slightly smaller shots — or tap You pick for me on photos.",
+        "Those photos are a bit large for this device to keep. Try slightly smaller shots - or tap You pick for me on photos.",
       );
       return;
     }
@@ -209,6 +199,11 @@ export default function StartPage() {
           </p>
         </div>
 
+        <p className="step-pill">
+          {ONBOARDING_COPY.stepOf(step, TOTAL_STEPS)}
+          {" · "}
+          {step === 1 ? ONBOARDING_COPY.step1Label : ONBOARDING_COPY.step2Label}
+        </p>
         <h1>{ONBOARDING_COPY.title}</h1>
         <p className="login-copy">{ONBOARDING_COPY.subtitle}</p>
 
@@ -217,184 +212,205 @@ export default function StartPage() {
         </button>
 
         <form className="login-form" onSubmit={onSubmit}>
-          <div className="login-field">
-            <div className="field-head">
-              <span>{ONBOARDING_COPY.aboutYouLabel}</span>
-              <button type="button" className="pick-one" onClick={pickAboutYou}>
-                {ONBOARDING_COPY.pickForMe}
-              </button>
-            </div>
-            <input
-              type="text"
-              required
-              autoComplete="organization"
-              placeholder={ONBOARDING_COPY.aboutYouPlaceholder}
-              value={aboutYou}
-              onChange={(e) => {
-                setAboutYou(e.target.value);
-                setPicked((p) => ({ ...p, aboutYou: false }));
-              }}
-            />
-            <small className="field-hint">
-              {picked.aboutYou
-                ? `We picked “${ONBOARDING_PICKS.aboutYou}.” Change it anytime.`
-                : ONBOARDING_COPY.aboutYouHint}
-            </small>
-          </div>
-
-          <div className="login-field">
-            <div className="field-head">
-              <span>{ONBOARDING_COPY.whyHereLabel}</span>
-              <button type="button" className="pick-one" onClick={pickWhyHere}>
-                {ONBOARDING_COPY.pickForMe}
-              </button>
-            </div>
-            <input
-              type="text"
-              required
-              placeholder={ONBOARDING_COPY.whyHerePlaceholder}
-              value={whyHere}
-              onChange={(e) => {
-                setWhyHere(e.target.value);
-                setPicked((p) => ({ ...p, whyHere: false }));
-              }}
-            />
-            <small className="field-hint">
-              {picked.whyHere
-                ? "We filled a starting intent for you. Edit freely."
-                : ONBOARDING_COPY.whyHereHint}
-            </small>
-          </div>
-
-          <div className="login-field">
-            <div className="field-head">
-              <span>{ONBOARDING_COPY.contentStyleLabel}</span>
-              <button
-                type="button"
-                className="pick-one"
-                onClick={pickContentStyle}
-              >
-                {ONBOARDING_COPY.pickForMe}
-              </button>
-            </div>
-            <input
-              type="text"
-              required
-              placeholder={ONBOARDING_COPY.contentStylePlaceholder}
-              value={contentStyle}
-              onChange={(e) => {
-                setContentStyle(e.target.value);
-                setPicked((p) => ({ ...p, contentStyle: false }));
-              }}
-            />
-            <small className="field-hint">
-              {picked.contentStyle
-                ? "We filled a starting style for you. Edit freely."
-                : ONBOARDING_COPY.contentStyleHint}
-            </small>
-          </div>
-
-          <div className="photo-lockin">
-            <div className="field-head">
-              <p className="photo-lockin-label">{ONBOARDING_COPY.photosLabel}</p>
-              <button type="button" className="pick-one" onClick={pickPhotos}>
-                {ONBOARDING_COPY.pickForMe}
-              </button>
-            </div>
-            <p className="field-hint photo-lockin-hint">
-              {picked.photos
-                ? "We started you with Brand Forged marks. Swap in your photos whenever."
-                : ONBOARDING_COPY.photosHint}
-            </p>
-            <div className="photo-slots">
-              {Array.from({ length: REFERENCE_PHOTO_COUNT }).map((_, index) => {
-                const preview = photos[index];
-                return (
-                  <div key={index} className="photo-slot">
-                    {preview ? (
-                      <>
-                        {/* eslint-disable-next-line @next/next/no-img-element */}
-                        <img src={preview} alt="" className="photo-preview" />
-                        <button
-                          type="button"
-                          className="photo-clear"
-                          onClick={() => clearPhoto(index)}
-                        >
-                          Replace
-                        </button>
-                      </>
-                    ) : (
-                      <label className="photo-add">
-                        <span>{ONBOARDING_COPY.photoSlotLabels[index]}</span>
-                        <input
-                          type="file"
-                          accept="image/*"
-                          capture="environment"
-                          onChange={(e) => onPhotoChange(index, e)}
-                        />
-                      </label>
-                    )}
-                  </div>
-                );
-              })}
-            </div>
-            {photoError ? (
-              <p className="login-alert" role="alert">
-                {photoError}
-              </p>
-            ) : null}
-          </div>
-
-          <div className="social-checklist">
-            <div className="field-head">
-              <p className="photo-lockin-label">{ONBOARDING_COPY.socialLabel}</p>
-              <button
-                type="button"
-                className="pick-one"
-                onClick={pickSocialSites}
-              >
-                {ONBOARDING_COPY.pickForMe}
-              </button>
-            </div>
-            <p className="field-hint photo-lockin-hint">
-              {picked.socialSites
-                ? "We checked Instagram, TikTok, YouTube, and Threads. Adjust anytime."
-                : ONBOARDING_COPY.socialHint}
-            </p>
-            <div
-              className="social-checks"
-              role="group"
-              aria-label={ONBOARDING_COPY.socialLabel}
-            >
-              {SOCIAL_SITES.map((site) => {
-                const checked = socialSites.includes(site.id);
-                return (
+          {step === 1 ? (
+            <>
+              <div className="login-field">
+                <div className="field-head">
+                  <span>{ONBOARDING_COPY.aboutYouLabel}</span>
                   <button
-                    key={site.id}
                     type="button"
-                    className={
-                      checked ? "social-chip is-checked" : "social-chip"
-                    }
-                    aria-pressed={checked}
-                    onClick={() => toggleSocial(site.id)}
+                    className="pick-one"
+                    onClick={pickAboutYou}
                   >
-                    <span className="social-chip-mark" aria-hidden>
-                      {checked ? "✓" : ""}
-                    </span>
-                    {site.label}
+                    {ONBOARDING_COPY.pickForMe}
                   </button>
-                );
-              })}
-            </div>
-          </div>
+                </div>
+                <input
+                  type="text"
+                  required
+                  autoComplete="organization"
+                  placeholder={ONBOARDING_COPY.aboutYouPlaceholder}
+                  value={aboutYou}
+                  onChange={(e) => {
+                    setAboutYou(e.target.value);
+                    setPicked((p) => ({ ...p, aboutYou: false }));
+                  }}
+                />
+                <small className="field-hint">
+                  {picked.aboutYou
+                    ? `We picked "${ONBOARDING_PICKS.aboutYou}." Change it anytime.`
+                    : ONBOARDING_COPY.aboutYouHint}
+                </small>
+              </div>
 
-          <button
-            className="login-submit"
-            type="submit"
-            disabled={pending || !canSubmit}
-          >
-            {pending ? ONBOARDING_COPY.submitting : ONBOARDING_COPY.submit}
-          </button>
+              <div className="login-field">
+                <div className="field-head">
+                  <span>{ONBOARDING_COPY.contentStyleLabel}</span>
+                  <button
+                    type="button"
+                    className="pick-one"
+                    onClick={pickContentStyle}
+                  >
+                    {ONBOARDING_COPY.pickForMe}
+                  </button>
+                </div>
+                <input
+                  type="text"
+                  required
+                  placeholder={ONBOARDING_COPY.contentStylePlaceholder}
+                  value={contentStyle}
+                  onChange={(e) => {
+                    setContentStyle(e.target.value);
+                    setPicked((p) => ({ ...p, contentStyle: false }));
+                  }}
+                />
+                <small className="field-hint">
+                  {picked.contentStyle
+                    ? "We filled a starting style for you. Edit freely."
+                    : ONBOARDING_COPY.contentStyleHint}
+                </small>
+              </div>
+
+              <button
+                className="login-submit"
+                type="submit"
+                disabled={!step1Ready}
+              >
+                {ONBOARDING_COPY.continue}
+              </button>
+            </>
+          ) : (
+            <>
+              <div className="photo-lockin">
+                <div className="field-head">
+                  <p className="photo-lockin-label">
+                    {ONBOARDING_COPY.photosLabel}
+                  </p>
+                  <button
+                    type="button"
+                    className="pick-one"
+                    onClick={pickPhotos}
+                  >
+                    {ONBOARDING_COPY.pickForMe}
+                  </button>
+                </div>
+                <p className="field-hint photo-lockin-hint">
+                  {picked.photos
+                    ? "We started you with Brand Forged marks. Swap in your photos whenever."
+                    : ONBOARDING_COPY.photosHint}
+                </p>
+                <div className="photo-slots">
+                  {Array.from({ length: REFERENCE_PHOTO_COUNT }).map(
+                    (_, index) => {
+                      const preview = photos[index];
+                      return (
+                        <div key={index} className="photo-slot">
+                          {preview ? (
+                            <>
+                              {/* eslint-disable-next-line @next/next/no-img-element */}
+                              <img
+                                src={preview}
+                                alt=""
+                                className="photo-preview"
+                              />
+                              <button
+                                type="button"
+                                className="photo-clear"
+                                onClick={() => clearPhoto(index)}
+                              >
+                                Replace
+                              </button>
+                            </>
+                          ) : (
+                            <label className="photo-add">
+                              <span>
+                                {ONBOARDING_COPY.photoSlotLabels[index]}
+                              </span>
+                              <input
+                                type="file"
+                                accept="image/*"
+                                capture="environment"
+                                onChange={(e) => onPhotoChange(index, e)}
+                              />
+                            </label>
+                          )}
+                        </div>
+                      );
+                    },
+                  )}
+                </div>
+                {photoError ? (
+                  <p className="login-alert" role="alert">
+                    {photoError}
+                  </p>
+                ) : null}
+              </div>
+
+              <div className="social-checklist">
+                <div className="field-head">
+                  <p className="photo-lockin-label">
+                    {ONBOARDING_COPY.socialLabel}
+                  </p>
+                  <button
+                    type="button"
+                    className="pick-one"
+                    onClick={pickSocialSites}
+                  >
+                    {ONBOARDING_COPY.pickForMe}
+                  </button>
+                </div>
+                <p className="field-hint photo-lockin-hint">
+                  {picked.socialSites
+                    ? "We checked Instagram, TikTok, YouTube, and Threads. Adjust anytime."
+                    : ONBOARDING_COPY.socialHint}
+                </p>
+                <div
+                  className="social-checks"
+                  role="group"
+                  aria-label={ONBOARDING_COPY.socialLabel}
+                >
+                  {SOCIAL_SITES.map((site) => {
+                    const checked = socialSites.includes(site.id);
+                    return (
+                      <button
+                        key={site.id}
+                        type="button"
+                        className={
+                          checked ? "social-chip is-checked" : "social-chip"
+                        }
+                        aria-pressed={checked}
+                        onClick={() => toggleSocial(site.id)}
+                      >
+                        <span className="social-chip-mark" aria-hidden>
+                          {checked ? "✓" : ""}
+                        </span>
+                        {site.label}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+
+              <div className="step-actions">
+                <button
+                  type="button"
+                  className="step-back"
+                  onClick={() => setStep(1)}
+                >
+                  {ONBOARDING_COPY.back}
+                </button>
+                <button
+                  className="login-submit"
+                  type="submit"
+                  disabled={pending || !canSubmit}
+                >
+                  {pending
+                    ? ONBOARDING_COPY.submitting
+                    : ONBOARDING_COPY.submit}
+                </button>
+              </div>
+            </>
+          )}
         </form>
       </div>
     </main>

@@ -3,7 +3,7 @@
 | Field | Value |
 | --- | --- |
 | **ID** | DR-2026-09-13-006 |
-| **Title** | Quick onboarding questions ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€¦Ã‚Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â we set up for the client |
+| **Title** | Quick onboarding questions ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Â ÃƒÂ¢Ã¢â€šÂ¬Ã¢â€žÂ¢ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã¢â‚¬Â¦Ãƒâ€šÃ‚Â¡ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€¦Ã‚Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â we set up for the client |
 | **Date** | 2026-09-13 |
 | **Status** | Adopted (founder direction) |
 | **Owner** | Founder / Strategy Room |
@@ -13,9 +13,9 @@ Brand Forged starts with **a few quick, direct questions**. Answers make the pla
 
 ## First questions (v1)
 1. **Who are we building for?**
-2. **What's your content style?** ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚Â one plain ask (photos, quotes, videos, posts)
-3. **Lock in as you** ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â upload 3 reference photos
-4. **What should we set up for you first?** ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚Â This is You / Your World / Both
+2. **What's your content style?** ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€¦Ã‚Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â one plain ask (photos, quotes, videos, posts)
+3. **Lock in as you** ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚Â upload 3 reference photos
+4. **What should we set up for you first?** ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€¦Ã‚Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â This is You / Your World / Both
 ## UX
 - Route: `/start`
 - Tone: we work for you ("Set it up for me")
@@ -23,11 +23,11 @@ Brand Forged starts with **a few quick, direct questions**. Answers make the pla
 
 ## You pick for me (2026-09-13)
 
-Every ask has **You pick for me** (plus one tap for everything). Defaults: Tethered & Truth; raw/honest cinematic content style; three Brand Forged marks as interim look; goal Both. Aligns with DR-004 ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Â the app always has an answer so the user is never stuck.
+Every ask has **You pick for me** (plus one tap for everything). Defaults: Tethered & Truth; raw/honest cinematic content style; three Brand Forged marks as interim look; goal Both. Aligns with DR-004 ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â the app always has an answer so the user is never stuck.
 
 ## Social checklist + Quick posts (2026-09-13)
 
-After the look photos (before choosing This is You / Your World / Both), ask **What social sites will you be using?** Checklist with You pick for me (default: Instagram, TikTok, YouTube, Threads). On This is You, a **Quick social posts Ã¢â‚¬â€ click here** box opens /you/posts with templates for every checked site.
+After the look photos (before choosing This is You / Your World / Both), ask **What social sites will you be using?** Checklist with You pick for me (default: Instagram, TikTok, YouTube, Threads). On This is You, a **Quick social posts ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Â click here** box opens /you/posts with templates for every checked site.
 
 ## Why are you here (2026-09-13)
 
@@ -36,3 +36,9 @@ Ask early (right after who): **Why are you here?** Hint: what are you looking to
 ## Setup order is ours (2026-09-13)
 
 Do **not** ask This is You / Your World / Both as a choice. Brand Forged chooses what is in what order. After /start, open home with both doors ready. Users answer who / why / style / photos / socials only.
+
+## Trim (same day, post-assessment)
+
+- Removed **Why are you here?** from `/start` (intent already at signup: branding vs all-in-one).
+- `/start` is now **2 steps**: who + style, then photos + socials.
+- Signup second ask label clarified: **All branding or all-in-one business?**
