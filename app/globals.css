@@ -16,7 +16,7 @@ button.workspace-switcher { color: inherit; cursor: pointer; font: inherit; text
 @media (max-width: 620px) { .app-shell { display: block; }.sidebar { padding: 18px; width: 100%; }.brand-mark { margin: 0 0 20px; }.workspace-switcher { max-width: 300px; }.nav-label,.nav-list,.sidebar-bottom { display: none; }.topbar { padding: 17px 20px; }.top-actions { gap: 10px; }.new-button { padding: 10px; }.content-inner { padding: 35px 20px 50px; }.page-intro { display: block; }.health-badge { display: inline-flex; margin-top: 22px; }.stats-grid { gap: 8px; margin-bottom: 24px; }.stat-card { padding: 15px; }.stat-card strong { font-size: 31px; }.panel { padding: 20px 16px; }.project-row { gap: 8px; }.project-info strong { font-size: 13px; }.status { display: none; }.focus-strip { align-items: flex-start; flex-wrap: wrap; padding: 20px; }.focus-strip .dark-button { margin-left: 63px; } }
 
 
-/* Auth / login â€” forged platinum (scoped under .login-shell) */
+/* Auth / login Ã¢â‚¬â€ forged platinum (scoped under .login-shell) */
 .login-shell {
   --login-ink: #0b0d0c;
   --login-panel: #141816;
@@ -358,4 +358,188 @@ a.brand-mark { color: inherit; text-decoration: none; }
 @media (max-width: 720px) {
   .home-doors, .module-grid { grid-template-columns: 1fr; }
   .home-door { min-height: 200px; padding: 28px 22px; }
+}
+
+/* Forged shell + home â€” matches login (Forge Green app face) */
+.forged-shell {
+  --energy: #b6ff2e;
+  --ink: #0b0d0c;
+  --paper: #0f1210;
+  --white: #161a18;
+  --muted: #9aa39c;
+  --line: rgba(214, 220, 214, 0.14);
+  background: #0b0d0c;
+  color: #e8ebe6;
+  font-family: var(--font-login-sans, system-ui), system-ui, sans-serif;
+}
+
+.forged-shell .sidebar {
+  background: linear-gradient(180deg, #121614 0%, #0b0d0c 100%);
+  border-right: 1px solid var(--line);
+  color: #e8ebe6;
+}
+
+.forged-shell .brand-mark {
+  align-items: center;
+  display: flex;
+  gap: 12px;
+  margin: 0 8px 36px;
+  text-decoration: none;
+}
+
+.forged-shell .brand-mark-logo {
+  border-radius: 10px;
+  display: block;
+  height: 44px;
+  object-fit: cover;
+  width: 44px;
+  box-shadow: 0 0 18px rgba(182, 255, 46, 0.22);
+}
+
+.forged-shell .brand-mark strong {
+  color: #f4f6f2;
+  display: block;
+  font-size: 15px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  line-height: 1.2;
+}
+
+.forged-shell .brand-mark em {
+  color: var(--energy);
+  display: block;
+  font-size: 10px;
+  font-style: normal;
+  font-weight: 700;
+  letter-spacing: 0.16em;
+  margin-top: 3px;
+  text-transform: uppercase;
+}
+
+.forged-shell .workspace-switcher {
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid var(--line);
+}
+
+.forged-shell .workspace-dot {
+  background: var(--energy);
+  box-shadow: 0 0 10px rgba(182, 255, 46, 0.55);
+}
+
+.forged-shell .nav-item.active {
+  box-shadow: inset 3px 0 var(--energy);
+}
+
+.forged-shell .avatar {
+  background: var(--energy);
+  color: #121614;
+}
+
+.forged-shell .content {
+  background:
+    radial-gradient(900px 420px at 20% -10%, rgba(182, 255, 46, 0.08), transparent 55%),
+    #0f1210;
+}
+
+.forged-shell .topbar {
+  border-bottom: 1px solid var(--line);
+}
+
+.forged-shell .breadcrumbs {
+  color: var(--muted);
+}
+
+.forged-shell .new-button {
+  background: linear-gradient(180deg, #e8ebe6 0%, #c5cac3 100%);
+  color: #121614;
+  text-decoration: none;
+}
+
+.forged-shell .user-chip-link {
+  color: inherit;
+  text-decoration: none;
+}
+
+.forged-shell .page-intro h1,
+.forged-shell .home-door h2,
+.forged-shell .module-card h2 {
+  color: #f4f6f2;
+  font-family: var(--font-login-display, Georgia), Georgia, serif;
+  font-weight: 500;
+}
+
+.forged-shell .intro-copy,
+.forged-shell .home-door p,
+.forged-shell .module-card p {
+  color: var(--muted);
+}
+
+.forged-shell .eyebrow {
+  color: var(--energy);
+}
+
+.forged-shell .home-door,
+.forged-shell .module-card,
+.forged-shell .panel,
+.forged-shell .stat-card {
+  background: rgba(22, 26, 24, 0.92);
+  border: 1px solid var(--line);
+}
+
+.forged-shell .home-door-you {
+  border-top: 4px solid var(--energy);
+}
+
+.forged-shell .home-door-world {
+  border-top: 4px solid #3d9bff;
+}
+
+.forged-shell .home-door:hover,
+.forged-shell .home-door:focus-visible {
+  outline: 2px solid var(--energy);
+  outline-offset: 3px;
+}
+
+.home-forged .home-hero {
+  margin: 0 0 28px;
+  text-align: center;
+}
+
+.home-hero-logo {
+  display: block;
+  filter: drop-shadow(0 16px 40px rgba(182, 255, 46, 0.18));
+  height: auto;
+  margin: 0 auto 12px;
+  max-width: min(220px, 55vw);
+  width: 100%;
+}
+
+.home-wordmark {
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.28em;
+  margin: 0 0 8px;
+  text-transform: uppercase;
+}
+
+.home-wordmark span { color: #e8ebe6; }
+.home-wordmark strong { color: #b6ff2e; font-weight: 700; }
+
+.home-line {
+  color: rgba(214, 220, 214, 0.55);
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  margin: 0;
+  text-transform: uppercase;
+}
+
+.forged-shell .page-intro {
+  text-align: center;
+}
+
+.forged-shell .page-intro .intro-copy {
+  margin-left: auto;
+  margin-right: auto;
+  max-width: 420px;
 }

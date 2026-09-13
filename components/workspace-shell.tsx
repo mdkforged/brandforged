@@ -30,13 +30,20 @@ export function WorkspaceShell({ children }: WorkspaceShellProps) {
   const currentDoor = HOME_DOORS.find((door) => door.href === pathname);
 
   return (
-    <div className="app-shell">
+    <div className="app-shell forged-shell">
       <aside className="sidebar">
         <Link href="/" className="brand-mark" aria-label="Brand Forged home">
-          <span>BF</span>
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            className="brand-mark-logo"
+            src="/brand/logo-forge-green.webp"
+            alt=""
+            width={44}
+            height={44}
+          />
           <div>
-            <strong>Brand</strong>
-            <em>Forged</em>
+            <strong>Brand Forged</strong>
+            <em>Forge Green</em>
           </div>
         </Link>
 
@@ -78,13 +85,13 @@ export function WorkspaceShell({ children }: WorkspaceShellProps) {
         ) : null}
 
         <div className="sidebar-bottom">
-          <div className="user-chip">
+          <Link href="/login" className="user-chip user-chip-link">
             <span className="avatar">MD</span>
             <div>
               <strong>Mary Diane</strong>
-              <small>Owner</small>
+              <small>Sign in</small>
             </div>
-          </div>
+          </Link>
         </div>
       </aside>
 
@@ -94,6 +101,11 @@ export function WorkspaceShell({ children }: WorkspaceShellProps) {
             {activeWorkspace.name}
             <span>/</span>
             {isHome ? "Home" : currentDoor?.label ?? "Home"}
+          </div>
+          <div className="top-actions">
+            <Link href="/login" className="new-button">
+              Sign in
+            </Link>
           </div>
         </header>
         <div className="content-inner">{children}</div>

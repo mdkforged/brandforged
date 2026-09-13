@@ -9,7 +9,22 @@ export const metadata: Metadata = {
 
 export default function HomePage() {
   return (
-    <>
+    <div className="home-forged">
+      <div className="home-hero">
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img
+          className="home-hero-logo"
+          src="/brand/logo-forge-green.webp"
+          alt="Brand Forged"
+          width={220}
+          height={220}
+        />
+        <p className="home-wordmark">
+          <span>Brand</span> <strong>Forged</strong>
+        </p>
+        <p className="home-line">Forged Platinum · Living Energy · User Chosen</p>
+      </div>
+
       <div className="page-intro">
         <div>
           <p className="eyebrow">Home</p>
@@ -32,6 +47,6 @@ export default function HomePage() {
           </Link>
         ))}
       </div>
-    </>
+    </div>
   );
 }
