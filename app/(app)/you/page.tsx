@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { LockedAsYouPhotos } from "@/components/you/locked-as-you-photos";
 
 export const metadata: Metadata = {
   title: "This is You | Brand Forged",
@@ -9,10 +10,6 @@ const modules = [
   {
     title: "Voice",
     note: "How you sound. We'll keep this close to you — nothing to fill out yet.",
-  },
-  {
-    title: "Look",
-    note: "Colors, type, and the feel of you. A place for this when you're ready.",
   },
   {
     title: "Ideas",
@@ -37,6 +34,11 @@ export default function ThisIsYouPage() {
           </p>
         </div>
       </div>
+
+      <article className="module-card look-card">
+        <h2>Look</h2>
+        <LockedAsYouPhotos />
+      </article>
 
       <div className="module-grid">
         {modules.map((item) => (
