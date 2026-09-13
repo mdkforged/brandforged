@@ -5,6 +5,8 @@ export type OnboardingAnswers = {
   aboutYou: string;
   /** What we should set up for them first. */
   goal: OnboardingGoal;
+  /** Content style — photos, quotes, videos, posts (one plain ask). */
+  contentStyle: string;
   savedAt: string;
 };
 
@@ -16,10 +18,14 @@ export const ONBOARDING_STORAGE_KEY = "bf-onboarding-v1";
  */
 export const ONBOARDING_COPY = {
   title: "A couple of quick questions",
-  subtitle: "We'll set things up from your answers. You don't have to figure the rest out.",
+  subtitle:
+    "We'll set things up from your answers. You don't have to figure the rest out.",
   aboutYouLabel: "Who are we building for?",
   aboutYouHint: "Your name, stage name, or business — whatever you call it.",
   aboutYouPlaceholder: "e.g. Tethered & Truth",
+  contentStyleLabel: "What's your content style?",
+  contentStyleHint: "How you show up in photos, quotes, videos, posts — in your words.",
+  contentStylePlaceholder: "e.g. raw and honest, bright and bold, quiet and cinematic",
   goalLabel: "What should we set up for you first?",
   goals: [
     {

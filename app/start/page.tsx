@@ -15,6 +15,7 @@ const PLATFORM_STRIKE = getEnergyStrike("forge-green");
 export default function StartPage() {
   const router = useRouter();
   const [aboutYou, setAboutYou] = useState("");
+  const [contentStyle, setContentStyle] = useState("");
   const [goal, setGoal] = useState<OnboardingGoal | null>(null);
   const [pending, setPending] = useState(false);
 
@@ -27,12 +28,16 @@ export default function StartPage() {
     [],
   );
 
+  const canSubmit =
+    Boolean(goal) && aboutYou.trim().length > 0 && contentStyle.trim().length > 0;
+
   function onSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    if (!goal || !aboutYou.trim()) return;
+    if (!goal || !aboutYou.trim() || !contentStyle.trim()) return;
     setPending(true);
     const payload = {
       aboutYou: aboutYou.trim(),
+      contentStyle: contentStyle.trim(),
       goal,
       savedAt: new Date().toISOString(),
     };
@@ -79,9 +84,25 @@ export default function StartPage() {
             <small className="field-hint">{ONBOARDING_COPY.aboutYouHint}</small>
           </label>
 
+          <label className="login-field">
+            <span>{ONBOARDING_COPY.contentStyleLabel}</span>
+            <input
+              type="text"
+              required
+              placeholder={ONBOARDING_COPY.contentStylePlaceholder}
+              value={contentStyle}
+              onChange={(e) => setContentStyle(e.target.value)}
+            />
+            <small className="field-hint">{ONBOARDING_COPY.contentStyleHint}</small>
+          </label>
+
           <fieldset className="goal-fieldset">
             <legend>{ONBOARDING_COPY.goalLabel}</legend>
-            <div className="goal-options" role="radiogroup" aria-label={ONBOARDING_COPY.goalLabel}>
+            <div
+              className="goal-options"
+              role="radiogroup"
+              aria-label={ONBOARDING_COPY.goalLabel}
+            >
               {ONBOARDING_COPY.goals.map((option) => (
                 <button
                   key={option.id}
@@ -103,7 +124,7 @@ export default function StartPage() {
           <button
             className="login-submit"
             type="submit"
-            disabled={pending || !goal || !aboutYou.trim()}
+            disabled={pending || !canSubmit}
           >
             {pending ? ONBOARDING_COPY.submitting : ONBOARDING_COPY.submit}
           </button>
