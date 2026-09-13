@@ -73,7 +73,7 @@ export type IdentitySession = {
   vaultSaved: boolean;
   /** Post-kit routing choice (Layer 2) - not part of Brand Input. */
   firstMake?: FirstMakeChoice;
-  pickedForYou?: Partial<Record<keyof BrandInputSet | "approval" | "firstMake", boolean>>;
+  pickedForYou?: Partial<Record<keyof BrandInputSet | "approval" | "firstMake" | "socialSites", boolean>>;
   socialSites?: string[];
   referencePhotos?: [string, string, string];
   savedAt: string;

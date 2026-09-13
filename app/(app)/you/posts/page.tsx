@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import { useOnboardingAnswers } from "@/lib/onboarding/use-onboarding-answers";
 import {
   labelForSite,
@@ -25,6 +25,22 @@ export default function QuickSocialPostsPage() {
   const primaryHex =
     answers?.primaryHex || answers?.kit?.tokens?.primaryHex || undefined;
   const templates = useMemo(() => templatesForSites(sites), [sites]);
+  const [copiedKey, setCopiedKey] = useState<string | null>(null);
+  const [draft, setDraft] = useState("");
+
+  async function useTemplate(siteId: SocialSiteId, title: string, prompt: string) {
+    const key = `${siteId}-${title}`;
+    setDraft(prompt);
+    try {
+      await navigator.clipboard.writeText(prompt);
+      setCopiedKey(key);
+      window.setTimeout(() => {
+        setCopiedKey((current) => (current === key ? null : current));
+      }, 1600);
+    } catch {
+      setCopiedKey(null);
+    }
+  }
 
   return (
     <div className="posts-enclosure">
@@ -73,10 +89,31 @@ export default function QuickSocialPostsPage() {
               <h2>{item.title}</h2>
               <p className="template-format">{item.format}</p>
               <p>{item.prompt}</p>
+              <button
+                type="button"
+                className="door-upgrade-btn"
+                onClick={() => useTemplate(item.siteId, item.title, item.prompt)}
+              >
+                {copiedKey === `${item.siteId}-${item.title}` ? "Copied" : "Use this"}
+              </button>
             </article>
           ))}
         </div>
       )}
+      {draft ? (
+        <article className="module-card">
+          <h2>Draft</h2>
+          <label className="login-field notes-field">
+            <span>Use this prompt</span>
+            <textarea
+              className="notes-textarea"
+              value={draft}
+              onChange={(event) => setDraft(event.target.value)}
+              rows={5}
+            />
+          </label>
+        </article>
+      ) : null}
     </div>
   );
 }

@@ -103,7 +103,7 @@ export function WorkspaceShell({ children }: WorkspaceShellProps) {
           </div>
           <div className="top-actions">
             <Link href="/start" className="new-button">
-              Sign in
+              Get started
             </Link>
           </div>
         </header>

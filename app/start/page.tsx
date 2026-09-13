@@ -25,6 +25,11 @@ import {
   type FirstMakeChoice,
   type OnboardingStage,
 } from "@/lib/identity/engine-scaffold";
+import {
+  SOCIAL_PICK_DEFAULTS,
+  SOCIAL_SITES,
+  type SocialSiteId,
+} from "@/lib/onboarding/social";
 
 const PLATFORM_STRIKE = getEnergyStrike("forge-green");
 
@@ -41,8 +46,9 @@ export default function StartPage() {
   });
   const [approved, setApproved] = useState(false);
   const [firstMake, setFirstMake] = useState<FirstMakeChoice>(FIRST_MAKE_DEFAULT);
+  const [socialSites, setSocialSites] = useState<SocialSiteId[]>([]);
   const [picked, setPicked] = useState<
-    Partial<Record<keyof BrandInputSet | "approval" | "firstMake", boolean>>
+    Partial<Record<keyof BrandInputSet | "approval" | "firstMake" | "socialSites", boolean>>
   >({});
   const [pending, setPending] = useState(false);
 
@@ -66,6 +72,7 @@ export default function StartPage() {
 
   function pickBrief() {
     setInput({ ...BRAND_INPUT_PICKS });
+    setSocialSites([...SOCIAL_PICK_DEFAULTS]);
     setPicked({
       brandName: true,
       industry: true,
@@ -73,7 +80,20 @@ export default function StartPage() {
       moodWords: true,
       logoStyle: true,
       colorPreference: true,
+      socialSites: true,
     });
+  }
+
+  function pickSocials() {
+    setSocialSites([...SOCIAL_PICK_DEFAULTS]);
+    setPicked((p) => ({ ...p, socialSites: true }));
+  }
+
+  function toggleSocial(id: SocialSiteId) {
+    setSocialSites((current) =>
+      current.includes(id) ? current.filter((site) => site !== id) : [...current, id],
+    );
+    setPicked((p) => ({ ...p, socialSites: false }));
   }
 
   function pickFirstMake() {
@@ -89,12 +109,13 @@ export default function StartPage() {
       ...p,
       approval: true,
       firstMake: true,
+      socialSites: true,
     }));
     setStage("kit_review");
   }
 
   function goNext() {
-    if (stage === "brief" && !ready) return;
+    if (stage === "brief" && (!ready || socialSites.length === 0)) return;
     if (stage === "kit_review" && !approved) return;
     const n = nextStage(stage);
     if (n) setStage(n);
@@ -132,7 +153,7 @@ export default function StartPage() {
         "/brand/logo-lumina-purple.webp",
         "/brand/logo-sapphire-blue-ember.webp",
       ] as [string, string, string],
-      socialSites: ["instagram", "tiktok", "youtube", "threads"],
+      socialSites,
       savedAt: new Date().toISOString(),
       activatedAt: new Date().toISOString(),
       activated: true,
@@ -266,7 +287,38 @@ export default function StartPage() {
                   ))}
                 </div>
               </div>
-              <button className="login-submit" type="submit" disabled={!ready}>
+              <div className="login-field">
+                <div className="field-head">
+                  <span>Social sites for posts</span>
+                  <button type="button" className="pick-one" onClick={pickSocials}>
+                    {IDENTITY_COPY.pickForMe}
+                  </button>
+                </div>
+                <p className="field-hint">
+                  Check the places you already post. This is not one of the five Brand Input questions — it just routes your templates.
+                </p>
+                <div className="social-checks" role="group" aria-label="Social sites for posts">
+                  {SOCIAL_SITES.map((site) => {
+                    const checked = socialSites.includes(site.id);
+                    return (
+                      <button
+                        key={site.id}
+                        type="button"
+                        className={checked ? "social-chip is-checked" : "social-chip"}
+                        aria-pressed={checked}
+                        onClick={() => toggleSocial(site.id)}
+                      >
+                        {site.label}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+              <button
+                className="login-submit"
+                type="submit"
+                disabled={!ready || socialSites.length === 0}
+              >
                 {IDENTITY_COPY.continue}
               </button>
             </>
