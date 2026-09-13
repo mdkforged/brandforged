@@ -22,7 +22,6 @@ export default function HomePage() {
         <p className="home-wordmark">
           <span>Brand</span> <strong>Forged</strong>
         </p>
-        <p className="home-line">Forged Platinum · Living Energy · User Chosen</p>
       </div>
 
       <div className="page-intro">

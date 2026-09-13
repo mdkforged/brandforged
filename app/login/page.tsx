@@ -8,7 +8,7 @@ import { getEnergyStrike } from "@/lib/brand/energy-strike";
 
 type Mode = "signin" | "signup";
 
-/** Sign-in shows Forge Green only — Energy Strike choices are back-burnered. */
+/** Sign-in shows Forge Green only â€” Energy Strike choices are back-burnered. */
 const PLATFORM_STRIKE = getEnergyStrike("forge-green");
 
 function LoginForm() {
@@ -46,7 +46,7 @@ function LoginForm() {
           return;
         }
         setInfo(
-          "Account created. If email confirm is on, check your inbox — or ask your builder to confirm you.",
+          "Account created. If email confirm is on, check your inbox â€” or ask your builder to confirm you.",
         );
         setMode("signin");
         return;
@@ -90,7 +90,6 @@ function LoginForm() {
           <p className="login-wordmark">
             <span>Brand</span> <strong>Forged</strong>
           </p>
-          <p className="login-line">Forged Platinum · Living Energy</p>
         </div>
 
         {!configured ? (
@@ -103,7 +102,7 @@ function LoginForm() {
             <p className="login-copy">
               {mode === "signup"
                 ? "One email. One password. Your workspace opens from here."
-                : "Sign in to open your doors — This is You and Your World."}
+                : "Sign in to open your doors â€” This is You and Your World."}
             </p>
 
             <form className="login-form" onSubmit={onSubmit}>
@@ -127,7 +126,7 @@ function LoginForm() {
                   }
                   required
                   minLength={8}
-                  placeholder="••••••••"
+                  placeholder="â€¢â€¢â€¢â€¢â€¢â€¢â€¢â€¢"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                 />
@@ -141,8 +140,8 @@ function LoginForm() {
               <button className="login-submit" type="submit" disabled={pending}>
                 {pending
                   ? mode === "signup"
-                    ? "Creating…"
-                    : "Signing in…"
+                    ? "Creatingâ€¦"
+                    : "Signing inâ€¦"
                   : mode === "signup"
                     ? "Create account"
                     : "Sign in"}
@@ -179,7 +178,7 @@ export default function LoginPage() {
           <div className="login-aura" aria-hidden />
           <div className="login-card">
             <h1>Welcome back</h1>
-            <p className="login-copy">Loading…</p>
+            <p className="login-copy">Loadingâ€¦</p>
           </div>
         </main>
       }
