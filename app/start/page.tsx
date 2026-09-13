@@ -17,7 +17,9 @@ import {
   fileToReferenceDataUrl,
   pathForGoal,
   type OnboardingGoal,
+  type SocialSiteId,
 } from "@/lib/onboarding/questions";
+import { SOCIAL_SITES } from "@/lib/onboarding/social";
 
 const PLATFORM_STRIKE = getEnergyStrike("forge-green");
 
@@ -25,6 +27,7 @@ type PickedMap = {
   aboutYou: boolean;
   contentStyle: boolean;
   photos: boolean;
+  socialSites: boolean;
   goal: boolean;
 };
 
@@ -37,12 +40,14 @@ export default function StartPage() {
     null,
     null,
   ]);
+  const [socialSites, setSocialSites] = useState<SocialSiteId[]>([]);
   const [photoError, setPhotoError] = useState<string | null>(null);
   const [goal, setGoal] = useState<OnboardingGoal | null>(null);
   const [picked, setPicked] = useState<PickedMap>({
     aboutYou: false,
     contentStyle: false,
     photos: false,
+    socialSites: false,
     goal: false,
   });
   const [pending, setPending] = useState(false);
@@ -57,11 +62,13 @@ export default function StartPage() {
   );
 
   const photosReady = photos.every((p) => Boolean(p));
+  const socialReady = socialSites.length > 0;
   const canSubmit =
     Boolean(goal) &&
     aboutYou.trim().length > 0 &&
     contentStyle.trim().length > 0 &&
-    photosReady;
+    photosReady &&
+    socialReady;
 
   function pickAboutYou() {
     setAboutYou(ONBOARDING_PICKS.aboutYou);
@@ -79,6 +86,11 @@ export default function StartPage() {
     setPicked((p) => ({ ...p, photos: true }));
   }
 
+  function pickSocialSites() {
+    setSocialSites([...ONBOARDING_PICKS.socialSites]);
+    setPicked((p) => ({ ...p, socialSites: true }));
+  }
+
   function pickGoal() {
     setGoal(ONBOARDING_PICKS.goal);
     setPicked((p) => ({ ...p, goal: true }));
@@ -88,14 +100,26 @@ export default function StartPage() {
     setAboutYou(ONBOARDING_PICKS.aboutYou);
     setContentStyle(ONBOARDING_PICKS.contentStyle);
     setPhotos([...ONBOARDING_PICKS.referencePhotos]);
+    setSocialSites([...ONBOARDING_PICKS.socialSites]);
     setGoal(ONBOARDING_PICKS.goal);
     setPhotoError(null);
     setPicked({
       aboutYou: true,
       contentStyle: true,
       photos: true,
+      socialSites: true,
       goal: true,
     });
+  }
+
+  function toggleSocial(id: SocialSiteId) {
+    setSocialSites((current) => {
+      if (current.includes(id)) {
+        return current.filter((s) => s !== id);
+      }
+      return [...current, id];
+    });
+    setPicked((p) => ({ ...p, socialSites: false }));
   }
 
   async function onPhotoChange(
@@ -134,7 +158,13 @@ export default function StartPage() {
 
   function onSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    if (!goal || !aboutYou.trim() || !contentStyle.trim() || !photosReady) {
+    if (
+      !goal ||
+      !aboutYou.trim() ||
+      !contentStyle.trim() ||
+      !photosReady ||
+      !socialReady
+    ) {
       return;
     }
     setPending(true);
@@ -143,6 +173,7 @@ export default function StartPage() {
       aboutYou: aboutYou.trim(),
       contentStyle: contentStyle.trim(),
       referencePhotos,
+      socialSites,
       goal,
       pickedForYou: picked,
       savedAt: new Date().toISOString(),
@@ -180,11 +211,7 @@ export default function StartPage() {
         <h1>{ONBOARDING_COPY.title}</h1>
         <p className="login-copy">{ONBOARDING_COPY.subtitle}</p>
 
-        <button
-          type="button"
-          className="pick-all"
-          onClick={pickEverything}
-        >
+        <button type="button" className="pick-all" onClick={pickEverything}>
           {ONBOARDING_COPY.pickAll}
         </button>
 
@@ -291,6 +318,49 @@ export default function StartPage() {
                 {photoError}
               </p>
             ) : null}
+          </div>
+
+          <div className="social-checklist">
+            <div className="field-head">
+              <p className="photo-lockin-label">{ONBOARDING_COPY.socialLabel}</p>
+              <button
+                type="button"
+                className="pick-one"
+                onClick={pickSocialSites}
+              >
+                {ONBOARDING_COPY.pickForMe}
+              </button>
+            </div>
+            <p className="field-hint photo-lockin-hint">
+              {picked.socialSites
+                ? "We checked Instagram, TikTok, YouTube, and Threads. Adjust anytime."
+                : ONBOARDING_COPY.socialHint}
+            </p>
+            <div
+              className="social-checks"
+              role="group"
+              aria-label={ONBOARDING_COPY.socialLabel}
+            >
+              {SOCIAL_SITES.map((site) => {
+                const checked = socialSites.includes(site.id);
+                return (
+                  <button
+                    key={site.id}
+                    type="button"
+                    className={
+                      checked ? "social-chip is-checked" : "social-chip"
+                    }
+                    aria-pressed={checked}
+                    onClick={() => toggleSocial(site.id)}
+                  >
+                    <span className="social-chip-mark" aria-hidden>
+                      {checked ? "✓" : ""}
+                    </span>
+                    {site.label}
+                  </button>
+                );
+              })}
+            </div>
           </div>
 
           <fieldset className="goal-fieldset">

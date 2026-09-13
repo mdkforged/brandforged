@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { LockedAsYouPhotos } from "@/components/you/locked-as-you-photos";
+import { QuickSocialPostsBox } from "@/components/you/quick-social-posts-box";
 
 export const metadata: Metadata = {
   title: "This is You | Brand Forged",
@@ -34,6 +35,8 @@ export default function ThisIsYouPage() {
           </p>
         </div>
       </div>
+
+      <QuickSocialPostsBox />
 
       <article className="module-card look-card">
         <h2>Look</h2>

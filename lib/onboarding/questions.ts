@@ -1,5 +1,9 @@
 export type OnboardingGoal = "you" | "world" | "both";
 
+export type { SocialSiteId } from "@/lib/onboarding/social";
+import type { SocialSiteId } from "@/lib/onboarding/social";
+import { SOCIAL_PICK_DEFAULTS } from "@/lib/onboarding/social";
+
 export type OnboardingAnswers = {
   /** Who they are / brand name — plain words. */
   aboutYou: string;
@@ -12,11 +16,14 @@ export type OnboardingAnswers = {
    * Data URLs for uploads, or /brand/... paths when we pick for them.
    */
   referencePhotos: [string, string, string];
+  /** Social sites they'll post to — drives Quick social posts templates. */
+  socialSites: SocialSiteId[];
   /** Which fields Brand Forged chose (DR-004: we work for the user). */
   pickedForYou?: {
     aboutYou?: boolean;
     contentStyle?: boolean;
     photos?: boolean;
+    socialSites?: boolean;
     goal?: boolean;
   };
   savedAt: string;
@@ -35,6 +42,7 @@ export const ONBOARDING_PICKS = {
     "/brand/logo-lumina-purple.webp",
     "/brand/logo-sapphire-blue-ember.webp",
   ] as [string, string, string],
+  socialSites: SOCIAL_PICK_DEFAULTS as SocialSiteId[],
   goal: "both" as OnboardingGoal,
 } as const;
 
@@ -61,6 +69,9 @@ export const ONBOARDING_COPY = {
   photosHint:
     "Upload 3 reference photos — or let us start you with Brand Forged marks until you swap them.",
   photoSlotLabels: ["Photo 1", "Photo 2", "Photo 3"] as const,
+  socialLabel: "What social sites will you be using?",
+  socialHint:
+    "Check the ones you post on. Quick social posts will open templates for each.",
   goalLabel: "What should we set up for you first?",
   goals: [
     {
