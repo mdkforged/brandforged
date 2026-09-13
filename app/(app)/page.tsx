@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
-import Link from "next/link";
 import { HomeDoorNav } from "@/components/home/home-door-nav";
+import { HomeGetStarted } from "@/components/home/home-get-started";
 
 export const metadata: Metadata = {
   title: "Home | Brand Forged",
@@ -31,11 +31,7 @@ export default function HomePage() {
           <p className="intro-copy">
             Start with This is You. Your World opens when you upgrade.
           </p>
-          <p>
-            <Link href="/start" className="door-upgrade-btn get-started-btn">
-              Get started
-            </Link>
-          </p>
+          <HomeGetStarted />
         </div>
       </div>
 

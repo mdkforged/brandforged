@@ -1,10 +1,16 @@
 "use client";
 
 import Link from "next/link";
-import { useOnboardingAnswers } from "@/lib/onboarding/use-onboarding-answers";
+import { useProfileAccess } from "@/lib/access/use-profile-access";
+import {
+  hasFinishedStart,
+  useOnboardingAnswers,
+} from "@/lib/onboarding/use-onboarding-answers";
 
 export default function YouVoicePage() {
   const answers = useOnboardingAnswers();
+  const { onboardingDone } = useProfileAccess();
+  const setupDone = hasFinishedStart(answers) || onboardingDone;
   const kit = answers?.kit;
   const voiceLabel = kit?.voiceLabel?.trim() || "";
   const voiceTone = kit?.tokens?.voiceTone ?? [];
@@ -33,8 +39,14 @@ export default function YouVoicePage() {
         <article className="module-card">
           <h2>No kit yet</h2>
           <p>
-            Go to <Link href="/start">Get started</Link> so we can lock your
-            voice from the brief.
+            {setupDone
+              ? "Your account finished setup, but this device doesn&apos;t have the locked kit yet."
+              : (
+                <>
+                  Go to <Link href="/start">Get started</Link> so we can lock your
+                  voice from the brief.
+                </>
+              )}
           </p>
         </article>
       ) : (

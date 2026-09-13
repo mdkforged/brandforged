@@ -8,6 +8,7 @@ export type ProfileAccess = {
   account_kind: AccountKind | null;
   solution_focus: SolutionFocus | null;
   world_upgrade_requested_at: string | null;
+  onboarding_completed_at: string | null;
 };
 
 /** Signup default + hard rule: Your World is an upgrade. */

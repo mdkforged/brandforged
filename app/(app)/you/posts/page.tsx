@@ -2,7 +2,11 @@
 
 import Link from "next/link";
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { useOnboardingAnswers } from "@/lib/onboarding/use-onboarding-answers";
+import { useProfileAccess } from "@/lib/access/use-profile-access";
+import {
+  hasFinishedStart,
+  useOnboardingAnswers,
+} from "@/lib/onboarding/use-onboarding-answers";
 import {
   labelForSite,
   type SocialSiteId,
@@ -23,6 +27,8 @@ function newId(): string {
 
 export default function QuickSocialPostsPage() {
   const answers = useOnboardingAnswers();
+  const { onboardingDone } = useProfileAccess();
+  const setupDone = hasFinishedStart(answers) || onboardingDone;
   const sites = useMemo(
     () =>
       Array.isArray(answers?.socialSites)
@@ -276,14 +282,17 @@ export default function QuickSocialPostsPage() {
         <article className="module-card">
           <h2>No sites yet</h2>
           <p>
-            Check the social sites you use — or tap You pick for me — then come
-            back for your ready packs.
+            {setupDone
+              ? "Social picks aren&apos;t on this device yet. They&apos;ll show here once local setup data is present."
+              : "Check the social sites you use — or tap You pick for me — then come back for your ready packs."}
           </p>
-          <p>
-            <Link href="/start" className="door-upgrade-btn">
-              Get started
-            </Link>
-          </p>
+          {!setupDone ? (
+            <p>
+              <Link href="/start" className="door-upgrade-btn">
+                Get started
+              </Link>
+            </p>
+          ) : null}
         </article>
       ) : (
         <section aria-label="Reach-ready packs">

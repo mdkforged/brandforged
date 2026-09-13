@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { useProfileAccess } from "@/lib/access/use-profile-access";
 import {
   hasFinishedStart,
   useOnboardingAnswers,
@@ -9,7 +10,8 @@ import { labelForSite, type SocialSiteId } from "@/lib/onboarding/social";
 
 export function QuickSocialPostsBox() {
   const answers = useOnboardingAnswers();
-  const isStarted = hasFinishedStart(answers);
+  const { onboardingDone } = useProfileAccess();
+  const isStarted = hasFinishedStart(answers) || onboardingDone;
   const sites =
     Array.isArray(answers?.socialSites) && answers.socialSites.length > 0
       ? (answers.socialSites as SocialSiteId[])

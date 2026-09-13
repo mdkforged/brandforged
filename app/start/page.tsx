@@ -44,6 +44,8 @@ import {
   IDENTITY_DONE_KEY,
   IDENTITY_UPDATED_EVENT,
 } from "@/lib/onboarding/use-onboarding-answers";
+import { createClient } from "@/lib/auth/supabase/client";
+import { isAuthConfigured } from "@/lib/validation/env";
 
 const PLATFORM_STRIKE = getEnergyStrike("forge-green");
 
@@ -271,7 +273,7 @@ export default function StartPage() {
     }
   }
 
-  function onSubmit(event: FormEvent<HTMLFormElement>) {
+  async function onSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     if (stage === "brief") {
       goNext();
@@ -312,6 +314,19 @@ export default function StartPage() {
       setPending(false);
       setPhotoError("Could not save on this device. Try again without large photo uploads.");
       return;
+    }
+    if (isAuthConfigured()) {
+      try {
+        const supabase = createClient();
+        const {
+          data: { user },
+        } = await supabase.auth.getUser();
+        if (user) {
+          await supabase.rpc("mark_onboarding_completed");
+        }
+      } catch {
+        /* local save already succeeded; profile sync can retry later */
+      }
     }
     router.replace(routeForFirstMake(firstMake));
   }

@@ -4,6 +4,10 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useState } from "react";
 import { useProfileAccess } from "@/lib/access/use-profile-access";
+import {
+  hasFinishedStart,
+  useOnboardingAnswers,
+} from "@/lib/onboarding/use-onboarding-answers";
 import { HOME_DOORS } from "@/lib/home/doors";
 import {
   DEFAULT_DEMO_WORKSPACE,
@@ -17,7 +21,9 @@ type WorkspaceShellProps = {
 
 export function WorkspaceShell({ children }: WorkspaceShellProps) {
   const pathname = usePathname();
-  const { signedIn, ready: authReady } = useProfileAccess();
+  const { signedIn, ready: authReady, onboardingDone } = useProfileAccess();
+  const answers = useOnboardingAnswers();
+  const setupDone = hasFinishedStart(answers) || onboardingDone;
   const [activeWorkspace, setActiveWorkspace] = useState<WorkspaceSummary>(
     DEFAULT_DEMO_WORKSPACE,
   );
@@ -109,9 +115,19 @@ export function WorkspaceShell({ children }: WorkspaceShellProps) {
             {isHome ? "Home" : currentDoor?.label ?? "Home"}
           </div>
           <div className="top-actions">
-            <Link href="/start" className="door-upgrade-btn get-started-btn">
-              Get started
-            </Link>
+            {authReady && !setupDone ? (
+              <>
+                <Link href="/start" className="door-upgrade-btn get-started-btn">
+                  Get started
+                </Link>
+                {!signedIn ? (
+                  <span className="topbar-soft-hint">
+                    <Link href="/login?next=/">Sign in first</Link> if you already
+                    set up on another device
+                  </span>
+                ) : null}
+              </>
+            ) : null}
           </div>
         </header>
         <div className="content-inner">{children}</div>

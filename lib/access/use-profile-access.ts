@@ -15,6 +15,7 @@ const EMPTY: ProfileAccess = {
   account_kind: null,
   solution_focus: null,
   world_upgrade_requested_at: null,
+  onboarding_completed_at: null,
 };
 
 export function useProfileAccess() {
@@ -44,7 +45,7 @@ export function useProfileAccess() {
       const { data } = await supabase
         .from("profiles")
         .select(
-          "door_access, account_kind, solution_focus, world_upgrade_requested_at",
+          "door_access, account_kind, solution_focus, world_upgrade_requested_at, onboarding_completed_at",
         )
         .eq("id", user.id)
         .maybeSingle();
@@ -54,6 +55,7 @@ export function useProfileAccess() {
         solution_focus:
           (data?.solution_focus as SolutionFocus | null | undefined) ?? null,
         world_upgrade_requested_at: data?.world_upgrade_requested_at ?? null,
+        onboarding_completed_at: data?.onboarding_completed_at ?? null,
       });
     } catch {
       setProfile(EMPTY);
@@ -96,6 +98,7 @@ export function useProfileAccess() {
     worldOpen: hasWorldAccess(profile.door_access as DoorAccess),
     requested: Boolean(profile.world_upgrade_requested_at),
     wantsAllInOne: profile.solution_focus === "all_in_one",
+    onboardingDone: Boolean(profile.onboarding_completed_at),
     requestWorldUpgrade,
     reload,
   };
