@@ -1,7 +1,6 @@
 alter table public.profiles
   add column if not exists onboarding_completed_at timestamptz;
 
--- Prefer RPC so clients can mark done without relying on column-level update quirks.
 create or replace function public.mark_onboarding_completed()
 returns public.profiles
 language plpgsql
