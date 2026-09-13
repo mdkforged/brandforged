@@ -33,6 +33,8 @@ export const SOCIAL_PICK_DEFAULTS: SocialSiteId[] = [
   "tiktok",
   "youtube",
   "threads",
+  "facebook",
+  "snapchat",
 ];
 
 export type SocialTemplate = {

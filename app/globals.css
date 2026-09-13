@@ -476,14 +476,17 @@ a.brand-mark { color: inherit; text-decoration: none; }
   min-width: 0;
 }
 .forged-shell .user-sign-out {
-  background: transparent;
-  border: 0;
-  color: #9faea5;
+  background: #2b3c37;
+  border: 1px solid #40514a;
+  border-radius: 8px;
+  color: #eef1e9;
   cursor: pointer;
-  font: 700 10px Arial, sans-serif;
-  padding: 4px 0;
-  text-decoration: underline;
+  font: 700 12px Arial, sans-serif;
+  padding: 10px 12px;
   white-space: nowrap;
+  position: relative;
+  z-index: 2;
+  min-height: 40px;
 }
 .forged-shell .user-sign-out:hover {
   color: #fffefa;
@@ -1121,4 +1124,35 @@ a.brand-mark { color: inherit; text-decoration: none; }
 }
 .notes-textarea:disabled {
   opacity: 0.7;
+}
+
+
+.copy-fallback {
+  display: block;
+  margin-top: 10px;
+  width: 100%;
+}
+.copy-fallback-text {
+  width: 100%;
+  box-sizing: border-box;
+  border: 1px solid #40514a;
+  border-radius: 10px;
+  background: #121916;
+  color: #eef1e9;
+  font: 500 14px/1.4 Arial, sans-serif;
+  padding: 12px;
+  resize: vertical;
+}
+
+
+.master-palette-block {
+  margin: 12px 0 18px;
+}
+.master-palette-sheet {
+  display: block;
+  width: 100%;
+  max-width: 420px;
+  border-radius: 12px;
+  border: 1px solid #40514a;
+  margin-bottom: 14px;
 }

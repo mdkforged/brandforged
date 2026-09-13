@@ -8,6 +8,10 @@ import {
   getEnergyStrike,
   type EnergyStrikeId,
 } from "@/lib/brand/energy-strike";
+import {
+  isTetheredTruthBrand,
+  TETHERED_TRUTH_KIT_TOKENS,
+} from "@/lib/brand/tethered-truth-palette";
 import type {
   BrandInputSet,
   ColorPreference,
@@ -383,13 +387,44 @@ export function generateLockedKit(input: BrandInputSet): LockedBrandKit {
   }
 
   const { moodTags, voiceTone } = collectVoiceAndTags(moodKeys);
-  const energyStrikeId = pickEnergyStrike(input.colorPreference, moodTags);
-  const strike = getEnergyStrike(energyStrikeId);
-  const companions = COMPANION_HEX[energyStrikeId];
   const pairing = pickFontPairing(moodKeys);
   const prefKey =
     input.colorPreference === "" ? "default" : input.colorPreference;
   const prefLabel = COLOR_PREF_UI[prefKey];
+
+  // Tethered & Truth always uses the founder Master Palette sheet.
+  if (isTetheredTruthBrand(input.brandName)) {
+    const ttMood = Array.from(
+      new Set(["cinematic", "raw", "honest", ...moodTags]),
+    ).slice(0, 6);
+    return {
+      paletteLabel: "Tethered & Truth Master Palette · Dark Luxury",
+      typographyLabel: `${pairing.label} (${pairing.display} / ${pairing.body})`,
+      logoLabel: `Logo · ${LOGO_UI[input.logoStyle]}`,
+      voiceLabel: voiceTone.join(", "),
+      templatePackLabel: "Social template pack (palette-locked)",
+      styleGuideLabel: "Tethered & Truth Master Palette",
+      tokens: {
+        energyStrikeId: "sapphire-blue",
+        primaryHex: TETHERED_TRUTH_KIT_TOKENS.primaryHex,
+        secondaryHex: TETHERED_TRUTH_KIT_TOKENS.secondaryHex,
+        accentHex: TETHERED_TRUTH_KIT_TOKENS.accentHex,
+        neutralHex: TETHERED_TRUTH_KIT_TOKENS.neutralHex,
+        backgroundHex: TETHERED_TRUTH_KIT_TOKENS.backgroundHex,
+        textHex: TETHERED_TRUTH_KIT_TOKENS.textHex,
+        fontPairing: { display: pairing.display, body: pairing.body },
+        voiceTone,
+        logoDirection: input.logoStyle,
+        moodTags: ttMood,
+      },
+      lockedAt: new Date().toISOString(),
+      source: "identity-engine-v1",
+    };
+  }
+
+  const energyStrikeId = pickEnergyStrike(input.colorPreference, moodTags);
+  const strike = getEnergyStrike(energyStrikeId);
+  const companions = COMPANION_HEX[energyStrikeId];
   const strikeLabel = STRIKE_UI_LABEL[energyStrikeId];
 
   return {

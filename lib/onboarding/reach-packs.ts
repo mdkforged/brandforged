@@ -1,10 +1,22 @@
 import type { SocialSiteId } from "@/lib/onboarding/social";
 
+/** What media the post actually needs — never imply audio/video you do not have. */
+export type MediaNeed =
+  | "look-photo"
+  | "your-photo"
+  | "your-video"
+  | "cover-art"
+  | "text-only";
+
 export type ReachPackItem = {
   id: string;
   title: string;
   whenHint: string;
+  /** Fan-facing caption ready to paste. Use {brand} for the artist/brand name. */
   caption: string;
+  mediaNeed: MediaNeed;
+  /** Honest label shown in UI, e.g. "Uses your Look photo" / "Text only — no audio". */
+  mediaLabel: string;
 };
 
 /** Three reach-ready posts per platform — closed curated content, no homework. */
@@ -12,211 +24,270 @@ export const REACH_PACKS: Record<SocialSiteId, ReachPackItem[]> = {
   instagram: [
     {
       id: "ig-1",
-      title: "Feed still — soft CTA",
-      whenHint: "Post mid-morning (9–11 local) when fans scroll coffee.",
+      title: "Feed photo",
+      whenHint: "Mid-morning (9–11 local) when fans scroll coffee.",
+      mediaNeed: "look-photo",
+      mediaLabel: "Uses your Look photo",
       caption:
-        "Still frame. One honest line under the photo. Soft CTA: save this · share with someone who needs it · link in bio.",
+        "Quiet frame. New from {brand}. Save this if you need it later — link in bio.",
     },
     {
       id: "ig-2",
-      title: "Reel hook — face first",
-      whenHint: "Drop Reels early evening (5–7) for first-hour reach.",
+      title: "Reel you film",
+      whenHint: "Early evening (5–7) for first-hour reach.",
+      mediaNeed: "your-video",
+      mediaLabel: "You film a short Reel — no built-in sound pack",
       caption:
-        "First 2 seconds: face or lyric on screen. One breath hook. End card: song title + where to listen.",
+        "One breath. One truth. This is {brand}. Song / link at the end — wherever you listen.",
     },
     {
       id: "ig-3",
-      title: "Carousel — story in 5",
-      whenHint: "Weekday lunch scroll (12–1) works for carousels.",
+      title: "Carousel story",
+      whenHint: "Weekday lunch scroll (12–1).",
+      mediaNeed: "look-photo",
+      mediaLabel: "Uses Look photos across slides",
       caption:
-        "Slide 1 hook · 2–4 the feeling · 5 the listen link. Keep text short. Invite a save.",
+        "Slide through the feeling. Made by {brand}. Soft ask: save · share with one person who needs it.",
     },
   ],
   tiktok: [
     {
       id: "tt-1",
-      title: "Sound clip — best 3 seconds",
-      whenHint: "Post when your crowd is awake evenings (6–9).",
+      title: "Talking clip you film",
+      whenHint: "Evenings (6–9) when your crowd is awake.",
+      mediaNeed: "your-video",
+      mediaLabel: "You film on-camera — no fake sound clip",
       caption:
-        "Open on the best 3 seconds. On-screen text = one truth from the lyric. End with song title.",
+        "I made this for the quiet ones. — {brand}. Link in bio if it lands.",
     },
     {
       id: "tt-2",
-      title: "Talking head — why this song",
-      whenHint: "Late afternoon (3–5) for talking-head reach.",
+      title: "Why this song",
+      whenHint: "Late afternoon (3–5).",
+      mediaNeed: "your-video",
+      mediaLabel: "Talking-head video you record",
       caption:
-        "Say what the song is really about in 20 seconds. Natural voice. Soft end: link in bio.",
+        "20 seconds of honesty from {brand}. What this is really about — then where to listen.",
     },
     {
       id: "tt-3",
-      title: "B-roll + lyric line",
-      whenHint: "Weekend mornings catch slower scrollers.",
+      title: "Photo + on-screen line",
+      whenHint: "Weekend mornings for slower scrollers.",
+      mediaNeed: "look-photo",
+      mediaLabel: "Still photo + text on screen",
       caption:
-        "B-roll of your world + one lyric line. Keep it honest. Pin a comment with the listen link.",
+        "One line. One photo. From {brand}. Pin the listen link in comments.",
     },
   ],
   youtube: [
     {
       id: "yt-1",
-      title: "Shorts cut — clean end card",
-      whenHint: "Shorts: late afternoon into evening for discovery.",
+      title: "Short you cut",
+      whenHint: "Late afternoon into evening.",
+      mediaNeed: "your-video",
+      mediaLabel: "Short you upload — title under 60 chars",
       caption:
-        "Same hook energy as TikTok, cleaner end card with song + channel. Title under 60 characters.",
+        "{brand} — new Short. Hook first, clean end card with where to listen.",
     },
     {
       id: "yt-2",
-      title: "Visualizer drop",
-      whenHint: "Upload full visualizer mid-week; promote same day on Shorts.",
+      title: "Cover / visualizer art",
+      whenHint: "Mid-week upload; promote same day.",
+      mediaNeed: "cover-art",
+      mediaLabel: "Cover art or lyric cards — not a fake audio file",
       caption:
-        "Full track art + waveform or lyric cards. Description: links, credits, one soft ask to subscribe.",
+        "Full listen from {brand}. Links + credits in the description. Soft ask to subscribe if it helps.",
     },
     {
       id: "yt-3",
       title: "Community note",
-      whenHint: "Post a Community update when a Short is peaking.",
+      whenHint: "When a Short is peaking.",
+      mediaNeed: "text-only",
+      mediaLabel: "Text post — optional thumbnail",
       caption:
-        "One warm line about the track + thumbnail. Ask a simple question fans can answer in comments.",
+        "Grateful you’re here. New from {brand} — what should we make next? Tell me in the comments.",
     },
   ],
   threads: [
     {
       id: "th-1",
-      title: "Journal beat",
-      whenHint: "Morning Threads (8–10) catch quiet readers.",
+      title: "Journal post",
+      whenHint: "Morning (8–10).",
+      mediaNeed: "text-only",
+      mediaLabel: "Text only",
       caption:
-        "One paragraph like a journal entry. No hard sell — invite a reply. Soft link at the end if it fits.",
+        "Writing this down so I don’t lose it. From {brand}: one honest paragraph, no hard sell. Reply if it lands.",
     },
     {
       id: "th-2",
       title: "One-line truth",
-      whenHint: "Lunch hour for short posts.",
+      whenHint: "Lunch hour.",
+      mediaNeed: "text-only",
+      mediaLabel: "Text only",
       caption:
-        "One true line about the work. Ask: “does this land for you?” Keep it human.",
+        "One true line from {brand}. Does this land for you?",
     },
     {
       id: "th-3",
       title: "Behind the take",
       whenHint: "Evening wind-down (7–9).",
+      mediaNeed: "text-only",
+      mediaLabel: "Text only — optional Look photo",
       caption:
-        "Share one thing you learned making this. End with gratitude — not a pitch.",
+        "One thing I learned making this. — {brand}. Thank you for listening.",
     },
   ],
   x: [
     {
       id: "x-1",
       title: "Single line + link",
-      whenHint: "Weekday mornings and early evenings travel farthest.",
+      whenHint: "Weekday mornings and early evenings.",
+      mediaNeed: "text-only",
+      mediaLabel: "Text + your listen link",
       caption:
-        "One lyric or truth. Link to the song. Pin while it’s new.",
+        "Out now from {brand}. One line. One link. That’s it.",
     },
     {
       id: "x-2",
-      title: "Quote-ready hook",
-      whenHint: "Post when your niche is chatting (often 11–1).",
+      title: "Quote-ready line",
+      whenHint: "Often 11–1 when niches chat.",
+      mediaNeed: "text-only",
+      mediaLabel: "Text only",
       caption:
-        "A line people can quote. No thread required. Soft follow-up reply with the listen link.",
+        "A line worth quoting. — {brand}",
     },
     {
       id: "x-3",
-      title: "Drop day reminder",
+      title: "Drop-day note",
       whenHint: "Twice on drop day — morning + evening.",
+      mediaNeed: "text-only",
+      mediaLabel: "Text + link",
       caption:
-        "Out now. One sentence on why it matters. Link once. Thank early listeners in replies.",
+        "Out now. Why it matters, in one sentence. — {brand}. Thank you to everyone who showed up early.",
     },
   ],
   facebook: [
     {
       id: "fb-1",
-      title: "Share post — warm caption",
-      whenHint: "Early evening (5–7) for friends & fans.",
+      title: "Warm share",
+      whenHint: "Early evening (5–7).",
+      mediaNeed: "look-photo",
+      mediaLabel: "Uses your Look photo",
       caption:
-        "Warm caption for people who already care. Include the listen link once. Ask them to share with one friend.",
+        "For the people who already care. New from {brand} — listen once, share with one friend if it helps.",
     },
     {
       id: "fb-2",
-      title: "Short video cut",
-      whenHint: "Weekend afternoons for video reach.",
+      title: "Short video you film",
+      whenHint: "Weekend afternoons.",
+      mediaNeed: "your-video",
+      mediaLabel: "15–30s clip you record — not a stock sound",
       caption:
-        "15–30s cut of the song or a talking moment. Caption = feeling + link. Keep it personal.",
+        "A small moment from {brand}. Feeling + link in the caption. Keep it personal.",
     },
     {
       id: "fb-3",
-      title: "Event / listen reminder",
-      whenHint: "Day-before and day-of for shows or drops.",
+      title: "Listen / event reminder",
+      whenHint: "Day-before and day-of.",
+      mediaNeed: "text-only",
+      mediaLabel: "Text + link or time/place",
       caption:
-        "Friendly reminder with time/place or drop link. Invite comments — reply to every one you can.",
+        "Friendly reminder from {brand}. Details + link below — drop a comment, I’ll reply.",
     },
   ],
   linkedin: [
     {
       id: "li-1",
       title: "Creator note",
-      whenHint: "Tue–Thu mornings for professional reach.",
+      whenHint: "Tue–Thu mornings.",
+      mediaNeed: "text-only",
+      mediaLabel: "Text + soft link",
       caption:
-        "What you’re building and why it matters. Soft link at the end. No hype — clarity.",
+        "What {brand} is building and why it matters. Clarity over hype. Soft link at the end.",
     },
     {
       id: "li-2",
       title: "Process share",
       whenHint: "Mid-week lunch scroll.",
+      mediaNeed: "text-only",
+      mediaLabel: "Text only",
       caption:
-        "One lesson from making this release. End with an open question for other creators.",
+        "One lesson from making this release. — {brand}. What are you learning in public?",
     },
     {
       id: "li-3",
-      title: "Milestone gratitude",
-      whenHint: "When you hit a real milestone — same day.",
+      title: "Milestone thanks",
+      whenHint: "Same day as a real milestone.",
+      mediaNeed: "text-only",
+      mediaLabel: "Text + optional cover",
       caption:
-        "Name the milestone. Thank the people who helped. Soft link to the work.",
+        "Naming the milestone. Thanking the people who helped. Soft link to the work. — {brand}",
     },
   ],
   spotify: [
     {
       id: "sp-1",
       title: "Canvas + bio line",
-      whenHint: "Update Canvas the morning of release.",
+      whenHint: "Morning of release.",
+      mediaNeed: "cover-art",
+      mediaLabel: "Cover / Canvas art — update in Spotify for Artists",
       caption:
-        "Update Canvas and artist bio in one pass. Bio line = mood of the track in one sentence.",
+        "Bio line for {brand}: one sentence on the mood of the track. Canvas updated same pass.",
     },
     {
       id: "sp-2",
       title: "Playlist pitch line",
-      whenHint: "Pitch within 7 days of release in for Artists.",
+      whenHint: "Within 7 days of release.",
+      mediaNeed: "text-only",
+      mediaLabel: "Pitch text only — mood, not resume",
       caption:
-        "Pitch the mood, not the resume. One sentence vibe + comparable energy. Keep it clean.",
+        "Pitch for {brand}: one-sentence vibe + comparable energy. Clean and honest.",
     },
     {
       id: "sp-3",
-      title: "Marquee / story nudge",
-      whenHint: "Use Marquee or story tools when the track is fresh.",
+      title: "Fan-facing promo line",
+      whenHint: "While the track is fresh.",
+      mediaNeed: "cover-art",
+      mediaLabel: "Story/Canvas promo line — same voice as IG",
       caption:
-        "Short fan-facing line for Spotify story/canvas promo. Same voice as your Instagram soft CTA.",
+        "New from {brand}. Soft listen ask — same warmth as the Instagram caption.",
     },
   ],
   snapchat: [
     {
       id: "sc-1",
-      title: "Story frame — face or art",
-      whenHint: "Stories peak evenings — post when fans are free.",
+      title: "Story photo",
+      whenHint: "Evenings when fans are free.",
+      mediaNeed: "look-photo",
+      mediaLabel: "Uses your Look photo — no fake audio",
       caption:
-        "One clear frame with your face or art. Caption = one true line. Soft swipe-up feel without hard sell.",
+        "One clear frame. One true line. — {brand}",
     },
     {
       id: "sc-2",
-      title: "Spotlight hook",
-      whenHint: "Spotlight: first 2 seconds decide reach — post evening.",
+      title: "Spotlight you film",
+      whenHint: "Evening — first 2 seconds decide reach.",
+      mediaNeed: "your-video",
+      mediaLabel: "Short clip you film — not a stock sound",
       caption:
-        "Open on the hook. Keep it honest and short. End with song title or where to listen.",
+        "Open on the hook. Honest and short. End with the title. — {brand}",
     },
     {
       id: "sc-3",
       title: "Day-in-the-voice Snap",
-      whenHint: "Casual midday Stories feel native on Snap.",
+      whenHint: "Casual midday Stories.",
+      mediaNeed: "your-video",
+      mediaLabel: "Quick talking Snap you record",
       caption:
-        "Quick talking Snap: what you’re making today. End with a soft “more tonight” or listen line.",
+        "What I’m making today. More later. — {brand}",
     },
   ],
 };
+
+export function fillBrandCaption(caption: string, brand: string): string {
+  const name = brand.trim() || "your brand";
+  return caption.replaceAll("{brand}", name);
+}
 
 export function reachPacksForSites(siteIds: SocialSiteId[]): Array<
   ReachPackItem & { siteId: SocialSiteId }
@@ -230,6 +301,19 @@ export function reachPacksForSites(siteIds: SocialSiteId[]): Array<
   }
   return out;
 }
+
+/** Open the platform compose / home surface (user pastes caption there). */
+export const PLATFORM_OPEN_URL: Record<SocialSiteId, string> = {
+  instagram: "https://www.instagram.com/",
+  tiktok: "https://www.tiktok.com/upload",
+  youtube: "https://studio.youtube.com/",
+  threads: "https://www.threads.net/",
+  x: "https://x.com/compose/post",
+  facebook: "https://www.facebook.com/",
+  linkedin: "https://www.linkedin.com/feed/",
+  spotify: "https://artists.spotify.com/",
+  snapchat: "https://www.snapchat.com/",
+};
 
 export const SOCIAL_NEEDS_STORAGE_KEY = "bf-social-needs-v1";
 

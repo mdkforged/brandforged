@@ -26,7 +26,7 @@ export const ENERGY_STRIKES: readonly EnergyStrike[] = [
     id: "sapphire-blue",
     name: "Sapphire Blue",
     hex: "#3d9bff",
-    logoSrc: "/brand/logo-sapphire-blue-ember.webp",
+    logoSrc: "/brand/logo-sapphire-blue.webp",
   },
   {
     id: "lumina-purple",

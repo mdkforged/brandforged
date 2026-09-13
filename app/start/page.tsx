@@ -44,6 +44,11 @@ import {
   IDENTITY_DONE_KEY,
   IDENTITY_UPDATED_EVENT,
 } from "@/lib/onboarding/use-onboarding-answers";
+import {
+  isTetheredTruthBrand,
+  TETHERED_TRUTH_PALETTE_IMAGE,
+  TETHERED_TRUTH_SWATCHES,
+} from "@/lib/brand/tethered-truth-palette";
 import { createClient } from "@/lib/auth/supabase/client";
 import { isAuthConfigured } from "@/lib/validation/env";
 
@@ -53,7 +58,7 @@ const PLATFORM_STRIKE = getEnergyStrike("forge-green");
 const DEFAULT_REFERENCE_PHOTOS: [string, string, string] = [
   "/brand/logo-forge-green.webp",
   "/brand/logo-lumina-purple.webp",
-  "/brand/logo-sapphire-blue-ember.webp",
+  "/brand/logo-sapphire-blue.webp",
 ];
 
 const PHOTO_SLOT_LABELS = ["Photo 1", "Photo 2", "Photo 3"] as const;
@@ -589,28 +594,55 @@ export default function StartPage() {
               <p className="field-hint">{IDENTITY_COPY.reviewHint}</p>
               <article className="module-card look-card">
                 <p><strong>Palette:</strong> {kit.paletteLabel}</p>
-                <div className="token-swatches" aria-label="Color tokens">
-                  {(
-                    [
-                      ["Primary", kit.tokens.primaryHex],
-                      ["Secondary", kit.tokens.secondaryHex],
-                      ["Accent", kit.tokens.accentHex],
-                    ] as const
-                  ).map(([label, hex]) => (
-                    <span key={label} className="token-swatch">
-                      <span
-                        className="token-swatch-chip"
-                        style={{ background: hex }}
-                        title={hex}
-                        aria-hidden
-                      />
-                      <span className="token-swatch-meta">
-                        {label}
-                        <code>{hex}</code>
+                {isTetheredTruthBrand(input.brandName) ? (
+                  <div className="master-palette-block">
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img
+                      src={TETHERED_TRUTH_PALETTE_IMAGE}
+                      alt="Tethered & Truth Master Palette"
+                      className="master-palette-sheet"
+                    />
+                    <div className="token-swatches" aria-label="Master palette swatches">
+                      {TETHERED_TRUTH_SWATCHES.map((s) => (
+                        <span key={s.id} className="token-swatch">
+                          <span
+                            className="token-swatch-chip"
+                            style={{ background: s.hex }}
+                            title={s.hex}
+                            aria-hidden
+                          />
+                          <span className="token-swatch-meta">
+                            {s.name}
+                            <code>{s.hex}</code>
+                          </span>
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                ) : (
+                  <div className="token-swatches" aria-label="Color tokens">
+                    {(
+                      [
+                        ["Primary", kit.tokens.primaryHex],
+                        ["Secondary", kit.tokens.secondaryHex],
+                        ["Accent", kit.tokens.accentHex],
+                      ] as const
+                    ).map(([label, hex]) => (
+                      <span key={label} className="token-swatch">
+                        <span
+                          className="token-swatch-chip"
+                          style={{ background: hex }}
+                          title={hex}
+                          aria-hidden
+                        />
+                        <span className="token-swatch-meta">
+                          {label}
+                          <code>{hex}</code>
+                        </span>
                       </span>
-                    </span>
-                  ))}
-                </div>
+                    ))}
+                  </div>
+                )}
                 <p><strong>Typography:</strong> {kit.typographyLabel}</p>
                 <p><strong>Logo:</strong> {kit.logoLabel}</p>
                 <p><strong>Voice:</strong> {kit.voiceLabel}</p>

@@ -42,11 +42,12 @@ export function WorkspaceShell({ children }: WorkspaceShellProps) {
     setSigningOut(true);
     try {
       const supabase = createClient();
-      await supabase.auth.signOut();
-      router.refresh();
-    } finally {
-      setSigningOut(false);
+      await supabase.auth.signOut({ scope: "global" });
+    } catch {
+      // still force leave session UI
     }
+    // Hard navigate so cookies + client state cannot stick on Signed in
+    window.location.assign("/login");
   }
 
   function cycleWorkspace() {

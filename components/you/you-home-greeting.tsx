@@ -12,13 +12,21 @@ import {
   useOnboardingAnswers,
 } from "@/lib/onboarding/use-onboarding-answers";
 import { labelForSite, type SocialSiteId } from "@/lib/onboarding/social";
+import {
+  isTetheredTruthBrand,
+  TETHERED_TRUTH_KIT_TOKENS,
+} from "@/lib/brand/tethered-truth-palette";
 
 export function YouHomeGreeting() {
   const answers = useOnboardingAnswers();
   const { signedIn, onboardingDone } = useProfileAccess();
   const brandName = answers?.brandName?.trim() || answers?.aboutYou?.trim();
   const firstMake = answers?.firstMake;
-  const primaryHex = answers?.primaryHex || answers?.kit?.tokens?.primaryHex;
+  const brandForPalette =
+    answers?.brandName?.trim() || answers?.aboutYou?.trim() || "";
+  const primaryHex = isTetheredTruthBrand(brandForPalette)
+    ? TETHERED_TRUTH_KIT_TOKENS.primaryHex
+    : answers?.primaryHex || answers?.kit?.tokens?.primaryHex;
   const socialSites = Array.isArray(answers?.socialSites)
     ? answers.socialSites
     : [];
