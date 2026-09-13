@@ -1,3 +1,4 @@
+/** Platform / founder logo = Forge Green. Other creators pick an Energy Strike. */
 export type EnergyStrikeId =
   | "forge-green"
   | "sapphire-blue"

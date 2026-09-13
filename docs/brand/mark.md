@@ -1,15 +1,19 @@
 # Brand mark (locked 2026-09-13)
 
-Official mark is founder-supplied: forged-platinum **ƎF / 3F** plates with Living Energy strike.
+## Platform / founder logo
+**Forge Green** (💚) is the official Brand Forged logo. Founder always uses green.
 
-Line: `FORGED PLATINUM | LIVING ENERGY | USER CHOSEN`
+## Formula
+Forged Platinum **ƎF / 3F** plates + Living Energy strike.
 
-## Energy Strike — Creator Choice (full set from brand sheet)
-1. Forge Green
+`FORGED PLATINUM | LIVING ENERGY | USER CHOSEN`
+
+## Creator Choice (other users)
+1. Forge Green — default / platform
 2. Sapphire Blue
 3. Lumina Purple
 4. Solar Gold
 5. Ember Red
 6. Ion Silver
 
-Login uses these six swatches. Rendered logo assets currently ship for green / blue / purple; other strikes tint UI chrome until matching renders are added.
+App: `lib/brand/energy-strike.ts`, assets in `public/brand/`.
