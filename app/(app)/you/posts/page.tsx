@@ -25,6 +25,8 @@ import {
   isTetheredTruthBrand,
   TETHERED_TRUTH_KIT_TOKENS,
 } from "@/lib/brand/tethered-truth-palette";
+import { SoundDrawer } from "@/components/you/sound-drawer";
+import type { LibrarySound } from "@/lib/sounds/sound-library";
 
 /** Forge Green companions when kit tokens are missing (locked-kit COMPANION_HEX). */
 const FORGE_FALLBACK = {
@@ -60,14 +62,11 @@ export default function QuickSocialPostsPage() {
     typeof answers?.contentStyle === "string" && answers.contentStyle.trim()
       ? answers.contentStyle.trim()
       : null;
+  const tokens = answers?.kit?.tokens;
   const brandName =
     (typeof answers?.brandName === "string" && answers.brandName.trim()) ||
     (typeof answers?.aboutYou === "string" && answers.aboutYou.trim()) ||
     "your brand";
-
-  const tokens = answers?.kit?.tokens;
-  const brandName =
-    answers?.brandName?.trim() || answers?.aboutYou?.trim() || "";
   const tt = isTetheredTruthBrand(brandName);
   const primaryHex = tt
     ? TETHERED_TRUTH_KIT_TOKENS.primaryHex
@@ -118,6 +117,7 @@ export default function QuickSocialPostsPage() {
   const [copiedKey, setCopiedKey] = useState<string | null>(null);
   const [selectedKey, setSelectedKey] = useState<string | null>(null);
   const [previewPhotoIndex, setPreviewPhotoIndex] = useState(0);
+  const [selectedSound, setSelectedSound] = useState<LibrarySound | null>(null);
 
   useEffect(() => {
     setNeeds(loadSocialNeeds());
@@ -221,7 +221,7 @@ export default function QuickSocialPostsPage() {
           <h1>Ready to post</h1>
           <p className="intro-copy">
             Captions you can paste — not homework. Titles say what media you
-            actually need (photo, video you film, or text). No fake sound packs.
+            actually need (photo, video you film, or text). Free sound drawer for your uploads and licensed catalog links.
             {sites.length > 0
               ? ` Sites: ${sites.map(labelForSite).join(", ")}.`
               : ""}
@@ -230,6 +230,14 @@ export default function QuickSocialPostsPage() {
           </p>
         </div>
       </div>
+
+      <SoundDrawer
+        primaryHex={primaryHex}
+        accentHex={accentHex}
+        textHex={textHex}
+        secondaryHex={secondaryHex}
+        onSelectedChange={setSelectedSound}
+      />
 
       <div className="posts-layout">
         <aside className="post-preview-column" aria-label="Phone preview">
@@ -295,7 +303,23 @@ export default function QuickSocialPostsPage() {
                   <p className="post-phone-when" style={{ color: neutralHex }}>
                     {selectedPack.whenHint}
                   </p>
-                </>
+                
+                  {selectedSound ? (
+                    <div
+                      className="post-phone-sound"
+                      style={{
+                        borderColor: `${primaryHex}55`,
+                        color: accentHex,
+                        background: `${secondaryHex}`,
+                      }}
+                    >
+                      <span className="post-phone-sound-icon" aria-hidden>
+                        ♪
+                      </span>
+                      <span>{selectedSound.title}</span>
+                    </div>
+                  ) : null}
+</>
               ) : (
                 <div className="post-phone-empty">
                   <p style={{ color: accentHex }}>Select a pack</p>
