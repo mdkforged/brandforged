@@ -7,12 +7,13 @@ import { isAuthConfigured } from "@/lib/validation/env";
 import { getEnergyStrike } from "@/lib/brand/energy-strike";
 import {
   DEFAULT_ACCOUNT_KIND,
+  defaultSolutionFocus,
   type AccountKind,
+  type SolutionFocus,
 } from "@/lib/access/doors";
 
 type Mode = "signin" | "signup";
 
-/** Sign-in shows Forge Green only — Energy Strike choices are back-burnered. */
 const PLATFORM_STRIKE = getEnergyStrike("forge-green");
 
 function LoginForm() {
@@ -24,7 +25,11 @@ function LoginForm() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [accountKind, setAccountKind] = useState<AccountKind | null>(null);
+  const [solutionFocus, setSolutionFocus] = useState<SolutionFocus | null>(
+    null,
+  );
   const [pickedKind, setPickedKind] = useState(false);
+  const [pickedFocus, setPickedFocus] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [info, setInfo] = useState<string | null>(null);
   const [pending, setPending] = useState(false);
@@ -32,14 +37,34 @@ function LoginForm() {
   function pickAccountKind() {
     setAccountKind(DEFAULT_ACCOUNT_KIND);
     setPickedKind(true);
+    if (!solutionFocus) {
+      setSolutionFocus(defaultSolutionFocus(DEFAULT_ACCOUNT_KIND));
+      setPickedFocus(true);
+    }
+  }
+
+  function pickSolutionFocus() {
+    const kind = accountKind ?? DEFAULT_ACCOUNT_KIND;
+    setSolutionFocus(defaultSolutionFocus(kind));
+    setPickedFocus(true);
   }
 
   async function onSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     if (!configured) return;
-    if (mode === "signup" && !accountKind) {
-      setError("Tell us if this is for an individual or a business — or tap You pick for me.");
-      return;
+    if (mode === "signup") {
+      if (!accountKind) {
+        setError(
+          "Tell us if this is for an individual or a business — or tap You pick for me.",
+        );
+        return;
+      }
+      if (!solutionFocus) {
+        setError(
+          "Tell us if you want all branding or the all-in-one business solution — or tap You pick for me.",
+        );
+        return;
+      }
     }
     setPending(true);
     setError(null);
@@ -53,6 +78,7 @@ function LoginForm() {
           options: {
             data: {
               account_kind: accountKind,
+              solution_focus: solutionFocus,
             },
           },
         });
@@ -172,63 +198,135 @@ function LoginForm() {
               </label>
 
               {mode === "signup" ? (
-                <div className="account-kind">
-                  <div className="field-head">
-                    <span>Is this for a business or an individual?</span>
-                    <button
-                      type="button"
-                      className="pick-one"
-                      onClick={pickAccountKind}
+                <>
+                  <div className="account-kind">
+                    <div className="field-head">
+                      <span>Is this for a business or an individual?</span>
+                      <button
+                        type="button"
+                        className="pick-one"
+                        onClick={pickAccountKind}
+                      >
+                        You pick for me
+                      </button>
+                    </div>
+                    <div
+                      className="goal-options"
+                      role="radiogroup"
+                      aria-label="Business or individual"
                     >
-                      You pick for me
-                    </button>
+                      <button
+                        type="button"
+                        role="radio"
+                        aria-checked={accountKind === "individual"}
+                        className={
+                          accountKind === "individual"
+                            ? "goal-option is-active"
+                            : "goal-option"
+                        }
+                        onClick={() => {
+                          setAccountKind("individual");
+                          setPickedKind(false);
+                        }}
+                      >
+                        <strong>Individual</strong>
+                        <span>
+                          Personal brand, artist, creator — This is You first.
+                        </span>
+                      </button>
+                      <button
+                        type="button"
+                        role="radio"
+                        aria-checked={accountKind === "business"}
+                        className={
+                          accountKind === "business"
+                            ? "goal-option is-active"
+                            : "goal-option"
+                        }
+                        onClick={() => {
+                          setAccountKind("business");
+                          setPickedKind(false);
+                        }}
+                      >
+                        <strong>Business</strong>
+                        <span>
+                          Company or team — still starts on This is You; Your
+                          World is an upgrade.
+                        </span>
+                      </button>
+                    </div>
+                    <small className="field-hint">
+                      {pickedKind
+                        ? "We picked Individual. Change it if this is a business."
+                        : "We need this at signup so we set you up right."}
+                    </small>
                   </div>
-                  <div
-                    className="goal-options"
-                    role="radiogroup"
-                    aria-label="Business or individual"
-                  >
-                    <button
-                      type="button"
-                      role="radio"
-                      aria-checked={accountKind === "individual"}
-                      className={
-                        accountKind === "individual"
-                          ? "goal-option is-active"
-                          : "goal-option"
-                      }
-                      onClick={() => {
-                        setAccountKind("individual");
-                        setPickedKind(false);
-                      }}
+
+                  <div className="account-kind">
+                    <div className="field-head">
+                      <span>What do you want?</span>
+                      <button
+                        type="button"
+                        className="pick-one"
+                        onClick={pickSolutionFocus}
+                      >
+                        You pick for me
+                      </button>
+                    </div>
+                    <div
+                      className="goal-options"
+                      role="radiogroup"
+                      aria-label="Branding or all-in-one"
                     >
-                      <strong>Individual</strong>
-                      <span>Personal brand, artist, creator — This is You first.</span>
-                    </button>
-                    <button
-                      type="button"
-                      role="radio"
-                      aria-checked={accountKind === "business"}
-                      className={
-                        accountKind === "business"
-                          ? "goal-option is-active"
-                          : "goal-option"
-                      }
-                      onClick={() => {
-                        setAccountKind("business");
-                        setPickedKind(false);
-                      }}
-                    >
-                      <strong>Business</strong>
-                      <span>Company or team — still starts on This is You; Your World is an upgrade.</span>
-                    </button>
+                      <button
+                        type="button"
+                        role="radio"
+                        aria-checked={solutionFocus === "branding"}
+                        className={
+                          solutionFocus === "branding"
+                            ? "goal-option is-active"
+                            : "goal-option"
+                        }
+                        onClick={() => {
+                          setSolutionFocus("branding");
+                          setPickedFocus(false);
+                        }}
+                      >
+                        <strong>All branding</strong>
+                        <span>
+                          Look, voice, posts — This is You, forged around you.
+                        </span>
+                      </button>
+                      <button
+                        type="button"
+                        role="radio"
+                        aria-checked={solutionFocus === "all_in_one"}
+                        className={
+                          solutionFocus === "all_in_one"
+                            ? "goal-option is-active"
+                            : "goal-option"
+                        }
+                        onClick={() => {
+                          setSolutionFocus("all_in_one");
+                          setPickedFocus(false);
+                        }}
+                      >
+                        <strong>All-in-one business</strong>
+                        <span>
+                          Branding plus the business side — Your World when you
+                          upgrade.
+                        </span>
+                      </button>
+                    </div>
+                    <small className="field-hint">
+                      {pickedFocus
+                        ? accountKind === "business"
+                          ? "We picked all-in-one for a business. Change it anytime."
+                          : "We picked all branding. Change it if you want the full business solution."
+                        : "Next after business or individual — so we know what to build toward."}
+                    </small>
                   </div>
-                  <small className="field-hint">
-                    {pickedKind
-                      ? "We picked Individual. Change it if this is a business."
-                      : "We need this at signup so we set you up right."}
-                  </small>
-                </div>
+                </>
               ) : null}
 
               {error ? (
