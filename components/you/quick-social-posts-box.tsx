@@ -1,39 +1,49 @@
 "use client";
 
 import Link from "next/link";
-import { useOnboardingAnswers } from "@/lib/onboarding/use-onboarding-answers";
+import {
+  hasFinishedStart,
+  useOnboardingAnswers,
+} from "@/lib/onboarding/use-onboarding-answers";
 import { labelForSite, type SocialSiteId } from "@/lib/onboarding/social";
 
 export function QuickSocialPostsBox() {
   const answers = useOnboardingAnswers();
+  const isStarted = hasFinishedStart(answers);
   const sites =
     Array.isArray(answers?.socialSites) && answers.socialSites.length > 0
       ? (answers.socialSites as SocialSiteId[])
       : [];
   const primaryHex =
     answers?.primaryHex || answers?.kit?.tokens?.primaryHex || undefined;
-  const needsSetup = !answers || sites.length === 0;
+  const energyStyle = primaryHex
+    ? {
+        borderColor: `${primaryHex}59`,
+        ["--energy" as string]: primaryHex,
+        cursor: "pointer" as const,
+      }
+    : { cursor: "pointer" as const };
+
+  if (!isStarted) {
+    return (
+      <Link href="/start" className="quick-posts-box" style={energyStyle}>
+        <p className="quick-posts-kicker">Get started</p>
+        <strong>Set up your brand</strong>
+        <span className="quick-posts-sites">
+          Five questions, then your workspace
+        </span>
+      </Link>
+    );
+  }
 
   return (
-    <Link
-      href={needsSetup ? "/start" : "/you/posts"}
-      className="quick-posts-box"
-      style={
-        primaryHex
-          ? {
-              borderColor: `${primaryHex}59`,
-              ["--energy" as string]: primaryHex,
-              cursor: "pointer",
-            }
-          : { cursor: "pointer" }
-      }
-    >
+    <Link href="/you/posts" className="quick-posts-box" style={energyStyle}>
       <p className="quick-posts-kicker">Quick social posts</p>
-      <strong>{needsSetup ? "Get started" : "Open quick posts"}</strong>
+      <strong>Open quick posts</strong>
       <span className="quick-posts-sites">
-        {needsSetup
-          ? "Check the socials you use — then your templates open here"
-          : sites.map(labelForSite).join(" · ")}
+        {sites.length > 0
+          ? sites.map(labelForSite).join(" · ")
+          : "Your templates for the sites you checked"}
       </span>
     </Link>
   );

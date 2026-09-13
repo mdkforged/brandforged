@@ -26,6 +26,11 @@ export type OnboardingAnswers = {
   /** Convenience: locked primary hex when kit tokens present. */
   primaryHex?: string;
   session?: IdentitySession;
+  /** True when vault was saved / session activated from /start. */
+  activated: boolean;
+  vaultSaved: boolean;
+  hasExistingLogo?: boolean;
+  logoUpload?: string;
 };
 
 function subscribe(onStoreChange: () => void) {
@@ -70,6 +75,9 @@ type StoredBlob = Partial<IdentitySession> &
     input?: BrandInputSet;
     kit?: LockedBrandKit;
     activatedAt?: string;
+    activated?: boolean;
+    hasExistingLogo?: boolean;
+    logoUpload?: string;
   };
 
 const FIRST_MAKE_IDS: FirstMakeChoice[] = [
@@ -94,6 +102,25 @@ function normalizeReferencePhotos(value: unknown): [string, string, string] {
   return [asStrings[0] || "", asStrings[1] || "", asStrings[2] || ""];
 }
 
+/**
+ * Finished /start when vault was saved / activated, OR brand name + socials + kit
+ * are present from a completed setup.
+ */
+export function hasFinishedStart(
+  answers: OnboardingAnswers | null | undefined,
+): boolean {
+  if (!answers) return false;
+  if (answers.vaultSaved || answers.activated) return true;
+  const brand =
+    (answers.brandName && answers.brandName.trim()) ||
+    (answers.aboutYou && answers.aboutYou.trim()) ||
+    "";
+  const socialOk =
+    Array.isArray(answers.socialSites) && answers.socialSites.length > 0;
+  const kitOk = Boolean(answers.kit);
+  return Boolean(brand) && socialOk && kitOk;
+}
+
 function toAnswers(raw: string): OnboardingAnswers | null {
   try {
     const parsed = JSON.parse(raw) as StoredBlob;
@@ -114,14 +141,18 @@ function toAnswers(raw: string): OnboardingAnswers | null {
       : [];
     const firstMake = parseFirstMake(parsed.firstMake);
     const kit = parsed.kit;
-    const activated = Boolean(parsed.activatedAt || parsed.vaultSaved);
+    const vaultSaved = Boolean(parsed.vaultSaved);
+    const activated = Boolean(
+      parsed.activated || parsed.activatedAt || vaultSaved,
+    );
 
     const hasSomething =
       Boolean(aboutYou.trim()) ||
       Boolean(input) ||
       Boolean(kit) ||
       socialSites.length > 0 ||
-      activated;
+      activated ||
+      vaultSaved;
 
     if (!hasSomething) return null;
 
@@ -132,13 +163,16 @@ function toAnswers(raw: string): OnboardingAnswers | null {
             kit: parsed.kit,
             stage: parsed.stage,
             approved: Boolean(parsed.approved),
-            vaultSaved: Boolean(parsed.vaultSaved),
+            vaultSaved,
             firstMake,
             pickedForYou: parsed.pickedForYou as IdentitySession["pickedForYou"],
             socialSites: socialSites as string[],
             referencePhotos,
             savedAt: parsed.savedAt || parsed.activatedAt || new Date().toISOString(),
             activatedAt: parsed.activatedAt,
+            hasExistingLogo: Boolean(parsed.hasExistingLogo),
+            logoUpload:
+              typeof parsed.logoUpload === "string" ? parsed.logoUpload : undefined,
           }
         : undefined;
 
@@ -160,6 +194,11 @@ function toAnswers(raw: string): OnboardingAnswers | null {
       kit,
       primaryHex,
       session,
+      activated,
+      vaultSaved,
+      hasExistingLogo: Boolean(parsed.hasExistingLogo) || undefined,
+      logoUpload:
+        typeof parsed.logoUpload === "string" ? parsed.logoUpload : undefined,
     };
   } catch {
     return null;
@@ -169,4 +208,10 @@ function toAnswers(raw: string): OnboardingAnswers | null {
 export function useOnboardingAnswers(): OnboardingAnswers | null {
   const raw = useSyncExternalStore(subscribe, getSnapshot, getServerSnapshot);
   return useMemo(() => (raw ? toAnswers(raw) : null), [raw]);
+}
+
+/** Convenience: isStarted === hasFinishedStart(answers). */
+export function useIsStarted(): boolean {
+  const answers = useOnboardingAnswers();
+  return hasFinishedStart(answers);
 }

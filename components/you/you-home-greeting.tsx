@@ -6,7 +6,10 @@ import {
   ctaForFirstMake,
   routeForFirstMake,
 } from "@/lib/identity/engine-scaffold";
-import { useOnboardingAnswers } from "@/lib/onboarding/use-onboarding-answers";
+import {
+  hasFinishedStart,
+  useOnboardingAnswers,
+} from "@/lib/onboarding/use-onboarding-answers";
 
 export function YouHomeGreeting() {
   const answers = useOnboardingAnswers();
@@ -16,7 +19,8 @@ export function YouHomeGreeting() {
   const socialSites = Array.isArray(answers?.socialSites)
     ? answers.socialSites
     : [];
-  const missingSocials = socialSites.length === 0;
+  const isStarted = hasFinishedStart(answers);
+  const missingSocials = isStarted && socialSites.length === 0;
 
   const energyStyle = primaryHex
     ? ({

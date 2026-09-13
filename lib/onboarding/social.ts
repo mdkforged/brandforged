@@ -6,7 +6,8 @@ export type SocialSiteId =
   | "x"
   | "facebook"
   | "linkedin"
-  | "spotify";
+  | "spotify"
+  | "snapchat";
 
 export type SocialSite = {
   id: SocialSiteId;
@@ -23,6 +24,7 @@ export const SOCIAL_SITES: SocialSite[] = [
   { id: "facebook", label: "Facebook", short: "FB" },
   { id: "linkedin", label: "LinkedIn", short: "LI" },
   { id: "spotify", label: "Spotify for Artists", short: "Sp" },
+  { id: "snapchat", label: "Snapchat", short: "Sc" },
 ];
 
 /** Artist-first defaults when they tap You pick for me. */
@@ -108,6 +110,18 @@ export const SOCIAL_TEMPLATES: SocialTemplate[] = [
     title: "Canvas / playlist pitch",
     format: "Spotify for Artists",
     prompt: "Update Canvas + bio line. Pitch the mood of the track in one sentence.",
+  },
+  {
+    siteId: "snapchat",
+    title: "Story frame",
+    format: "9:16 Story",
+    prompt: "One clear frame with your face or art. Caption = one true line. Soft swipe-up feel without hard sell.",
+  },
+  {
+    siteId: "snapchat",
+    title: "Spotlight hook",
+    format: "Spotlight clip, first 2 seconds",
+    prompt: "Open on the hook. Keep it honest and short. End with song title or where to listen.",
   },
 ];
 

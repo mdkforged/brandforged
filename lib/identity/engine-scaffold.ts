@@ -73,9 +73,13 @@ export type IdentitySession = {
   vaultSaved: boolean;
   /** Post-kit routing choice (Layer 2) - not part of Brand Input. */
   firstMake?: FirstMakeChoice;
-  pickedForYou?: Partial<Record<keyof BrandInputSet | "approval" | "firstMake" | "socialSites", boolean>>;
+  pickedForYou?: Partial<Record<keyof BrandInputSet | "approval" | "firstMake" | "socialSites" | "photos", boolean>>;
   socialSites?: string[];
   referencePhotos?: [string, string, string];
+  /** User already has a logo / brand mark (upload optional). */
+  hasExistingLogo?: boolean;
+  /** Optional logo / brand mark data URL from /start upload. */
+  logoUpload?: string;
   savedAt: string;
   activatedAt?: string;
 };
