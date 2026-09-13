@@ -7,22 +7,48 @@ export type OnboardingAnswers = {
   goal: OnboardingGoal;
   /** Content style — photos, quotes, videos, posts (one plain ask). */
   contentStyle: string;
-  /** Three reference photos that lock in "as you" (data URLs for v1). */
+  /**
+   * Three reference photos that lock in "as you".
+   * Data URLs for uploads, or /brand/... paths when we pick for them.
+   */
   referencePhotos: [string, string, string];
+  /** Which fields Brand Forged chose (DR-004: we work for the user). */
+  pickedForYou?: {
+    aboutYou?: boolean;
+    contentStyle?: boolean;
+    photos?: boolean;
+    goal?: boolean;
+  };
   savedAt: string;
 };
 
 export const ONBOARDING_STORAGE_KEY = "bf-onboarding-v1";
 export const REFERENCE_PHOTO_COUNT = 3;
 
+/** Solid defaults when they tap "You pick for me" on any ask. */
+export const ONBOARDING_PICKS = {
+  aboutYou: "Tethered & Truth",
+  contentStyle:
+    "Raw and honest — cinematic photos, real quotes, music-led videos, posts that feel like journal pages.",
+  referencePhotos: [
+    "/brand/logo-forge-green.webp",
+    "/brand/logo-lumina-purple.webp",
+    "/brand/logo-sapphire-blue-ember.webp",
+  ] as [string, string, string],
+  goal: "both" as OnboardingGoal,
+} as const;
+
 /**
  * Quick direct questions. Answers make Brand Forged work for the client —
  * we set things up; they don't fill a long form (DR-004).
+ * Every ask has "You pick for me" so they are never stuck without an answer.
  */
 export const ONBOARDING_COPY = {
   title: "A couple of quick questions",
   subtitle:
-    "We'll set things up from your answers. You don't have to figure the rest out.",
+    "We'll set things up from your answers. Stuck? Tap You pick for me on any one.",
+  pickForMe: "You pick for me",
+  pickAll: "You pick for me on everything",
   aboutYouLabel: "Who are we building for?",
   aboutYouHint: "Your name, stage name, or business — whatever you call it.",
   aboutYouPlaceholder: "e.g. Tethered & Truth",
@@ -32,7 +58,8 @@ export const ONBOARDING_COPY = {
   contentStylePlaceholder:
     "e.g. raw and honest, bright and bold, quiet and cinematic",
   photosLabel: "Lock in as you",
-  photosHint: "Upload 3 reference photos. These become your look baseline.",
+  photosHint:
+    "Upload 3 reference photos — or let us start you with Brand Forged marks until you swap them.",
   photoSlotLabels: ["Photo 1", "Photo 2", "Photo 3"] as const,
   goalLabel: "What should we set up for you first?",
   goals: [

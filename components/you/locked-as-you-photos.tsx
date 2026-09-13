@@ -9,6 +9,7 @@ import {
 export function LockedAsYouPhotos() {
   const [photos, setPhotos] = useState<string[] | null>(null);
   const [label, setLabel] = useState<string | null>(null);
+  const [pickedForYou, setPickedForYou] = useState(false);
 
   useEffect(() => {
     try {
@@ -25,6 +26,9 @@ export function LockedAsYouPhotos() {
       if (typeof parsed.aboutYou === "string" && parsed.aboutYou.trim()) {
         setLabel(parsed.aboutYou.trim());
       }
+      if (parsed.pickedForYou?.photos) {
+        setPickedForYou(true);
+      }
     } catch {
       // ignore bad local payload
     }
@@ -33,8 +37,8 @@ export function LockedAsYouPhotos() {
   if (!photos) {
     return (
       <p>
-        Upload 3 reference photos on Get started to lock in as you. Nothing here
-        yet.
+        Upload 3 reference photos on Get started to lock in as you — or tap You
+        pick for me there. Nothing here yet.
       </p>
     );
   }
@@ -42,8 +46,10 @@ export function LockedAsYouPhotos() {
   return (
     <div className="locked-you">
       <p className="locked-you-copy">
-        {label ? `Locked in as ${label}.` : "Locked in as you."} These three
-        photos are your look baseline.
+        {label ? `Locked in as ${label}.` : "Locked in as you."}{" "}
+        {pickedForYou
+          ? "We started you with Brand Forged marks — swap in your photos whenever."
+          : "These three photos are your look baseline."}
       </p>
       <div className="locked-you-grid">
         {photos.map((src, index) => (

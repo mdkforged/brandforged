@@ -11,6 +11,7 @@ import { useRouter } from "next/navigation";
 import { getEnergyStrike } from "@/lib/brand/energy-strike";
 import {
   ONBOARDING_COPY,
+  ONBOARDING_PICKS,
   ONBOARDING_STORAGE_KEY,
   REFERENCE_PHOTO_COUNT,
   fileToReferenceDataUrl,
@@ -19,6 +20,13 @@ import {
 } from "@/lib/onboarding/questions";
 
 const PLATFORM_STRIKE = getEnergyStrike("forge-green");
+
+type PickedMap = {
+  aboutYou: boolean;
+  contentStyle: boolean;
+  photos: boolean;
+  goal: boolean;
+};
 
 export default function StartPage() {
   const router = useRouter();
@@ -31,6 +39,12 @@ export default function StartPage() {
   ]);
   const [photoError, setPhotoError] = useState<string | null>(null);
   const [goal, setGoal] = useState<OnboardingGoal | null>(null);
+  const [picked, setPicked] = useState<PickedMap>({
+    aboutYou: false,
+    contentStyle: false,
+    photos: false,
+    goal: false,
+  });
   const [pending, setPending] = useState(false);
 
   const energyStyle = useMemo(
@@ -48,6 +62,41 @@ export default function StartPage() {
     aboutYou.trim().length > 0 &&
     contentStyle.trim().length > 0 &&
     photosReady;
+
+  function pickAboutYou() {
+    setAboutYou(ONBOARDING_PICKS.aboutYou);
+    setPicked((p) => ({ ...p, aboutYou: true }));
+  }
+
+  function pickContentStyle() {
+    setContentStyle(ONBOARDING_PICKS.contentStyle);
+    setPicked((p) => ({ ...p, contentStyle: true }));
+  }
+
+  function pickPhotos() {
+    setPhotos([...ONBOARDING_PICKS.referencePhotos]);
+    setPhotoError(null);
+    setPicked((p) => ({ ...p, photos: true }));
+  }
+
+  function pickGoal() {
+    setGoal(ONBOARDING_PICKS.goal);
+    setPicked((p) => ({ ...p, goal: true }));
+  }
+
+  function pickEverything() {
+    setAboutYou(ONBOARDING_PICKS.aboutYou);
+    setContentStyle(ONBOARDING_PICKS.contentStyle);
+    setPhotos([...ONBOARDING_PICKS.referencePhotos]);
+    setGoal(ONBOARDING_PICKS.goal);
+    setPhotoError(null);
+    setPicked({
+      aboutYou: true,
+      contentStyle: true,
+      photos: true,
+      goal: true,
+    });
+  }
 
   async function onPhotoChange(
     index: number,
@@ -68,8 +117,9 @@ export default function StartPage() {
         next[index] = dataUrl;
         return next;
       });
+      setPicked((p) => ({ ...p, photos: false }));
     } catch {
-      setPhotoError("Couldn’t read that photo. Try another.");
+      setPhotoError("Couldn't read that photo. Try another.");
     }
   }
 
@@ -79,6 +129,7 @@ export default function StartPage() {
       next[index] = null;
       return next;
     });
+    setPicked((p) => ({ ...p, photos: false }));
   }
 
   function onSubmit(event: FormEvent<HTMLFormElement>) {
@@ -93,6 +144,7 @@ export default function StartPage() {
       contentStyle: contentStyle.trim(),
       referencePhotos,
       goal,
+      pickedForYou: picked,
       savedAt: new Date().toISOString(),
     };
     try {
@@ -100,7 +152,7 @@ export default function StartPage() {
     } catch {
       setPending(false);
       setPhotoError(
-        "Those photos are a bit large for this device to keep. Try slightly smaller shots.",
+        "Those photos are a bit large for this device to keep. Try slightly smaller shots — or tap You pick for me on photos.",
       );
       return;
     }
@@ -128,36 +180,79 @@ export default function StartPage() {
         <h1>{ONBOARDING_COPY.title}</h1>
         <p className="login-copy">{ONBOARDING_COPY.subtitle}</p>
 
+        <button
+          type="button"
+          className="pick-all"
+          onClick={pickEverything}
+        >
+          {ONBOARDING_COPY.pickAll}
+        </button>
+
         <form className="login-form" onSubmit={onSubmit}>
-          <label className="login-field">
-            <span>{ONBOARDING_COPY.aboutYouLabel}</span>
+          <div className="login-field">
+            <div className="field-head">
+              <span>{ONBOARDING_COPY.aboutYouLabel}</span>
+              <button type="button" className="pick-one" onClick={pickAboutYou}>
+                {ONBOARDING_COPY.pickForMe}
+              </button>
+            </div>
             <input
               type="text"
               required
               autoComplete="organization"
               placeholder={ONBOARDING_COPY.aboutYouPlaceholder}
               value={aboutYou}
-              onChange={(e) => setAboutYou(e.target.value)}
+              onChange={(e) => {
+                setAboutYou(e.target.value);
+                setPicked((p) => ({ ...p, aboutYou: false }));
+              }}
             />
-            <small className="field-hint">{ONBOARDING_COPY.aboutYouHint}</small>
-          </label>
+            <small className="field-hint">
+              {picked.aboutYou
+                ? `We picked “${ONBOARDING_PICKS.aboutYou}.” Change it anytime.`
+                : ONBOARDING_COPY.aboutYouHint}
+            </small>
+          </div>
 
-          <label className="login-field">
-            <span>{ONBOARDING_COPY.contentStyleLabel}</span>
+          <div className="login-field">
+            <div className="field-head">
+              <span>{ONBOARDING_COPY.contentStyleLabel}</span>
+              <button
+                type="button"
+                className="pick-one"
+                onClick={pickContentStyle}
+              >
+                {ONBOARDING_COPY.pickForMe}
+              </button>
+            </div>
             <input
               type="text"
               required
               placeholder={ONBOARDING_COPY.contentStylePlaceholder}
               value={contentStyle}
-              onChange={(e) => setContentStyle(e.target.value)}
+              onChange={(e) => {
+                setContentStyle(e.target.value);
+                setPicked((p) => ({ ...p, contentStyle: false }));
+              }}
             />
-            <small className="field-hint">{ONBOARDING_COPY.contentStyleHint}</small>
-          </label>
+            <small className="field-hint">
+              {picked.contentStyle
+                ? "We filled a starting style for you. Edit freely."
+                : ONBOARDING_COPY.contentStyleHint}
+            </small>
+          </div>
 
           <div className="photo-lockin">
-            <p className="photo-lockin-label">{ONBOARDING_COPY.photosLabel}</p>
+            <div className="field-head">
+              <p className="photo-lockin-label">{ONBOARDING_COPY.photosLabel}</p>
+              <button type="button" className="pick-one" onClick={pickPhotos}>
+                {ONBOARDING_COPY.pickForMe}
+              </button>
+            </div>
             <p className="field-hint photo-lockin-hint">
-              {ONBOARDING_COPY.photosHint}
+              {picked.photos
+                ? "We started you with Brand Forged marks. Swap in your photos whenever."
+                : ONBOARDING_COPY.photosHint}
             </p>
             <div className="photo-slots">
               {Array.from({ length: REFERENCE_PHOTO_COUNT }).map((_, index) => {
@@ -199,7 +294,12 @@ export default function StartPage() {
           </div>
 
           <fieldset className="goal-fieldset">
-            <legend>{ONBOARDING_COPY.goalLabel}</legend>
+            <div className="field-head goal-head">
+              <legend>{ONBOARDING_COPY.goalLabel}</legend>
+              <button type="button" className="pick-one" onClick={pickGoal}>
+                {ONBOARDING_COPY.pickForMe}
+              </button>
+            </div>
             <div
               className="goal-options"
               role="radiogroup"
@@ -214,13 +314,21 @@ export default function StartPage() {
                   className={
                     goal === option.id ? "goal-option is-active" : "goal-option"
                   }
-                  onClick={() => setGoal(option.id)}
+                  onClick={() => {
+                    setGoal(option.id);
+                    setPicked((p) => ({ ...p, goal: false }));
+                  }}
                 >
                   <strong>{option.label}</strong>
                   <span>{option.detail}</span>
                 </button>
               ))}
             </div>
+            {picked.goal ? (
+              <small className="field-hint">
+                We chose Both so both doors are ready.
+              </small>
+            ) : null}
           </fieldset>
 
           <button
