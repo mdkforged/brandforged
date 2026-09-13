@@ -7,8 +7,9 @@ import { getEnergyStrike } from "@/lib/brand/energy-strike";
 import {
   BRAND_INPUT_PICKS,
   COLOR_PREF_OPTIONS,
+  FIRST_MAKE_DEFAULT,
+  FIRST_MAKE_OPTIONS,
   IDENTITY_COPY,
-  IDENTITY_ROUTE_AFTER_ACTIVATION,
   IDENTITY_STORAGE_KEY,
   LOGO_STYLE_OPTIONS,
   ONBOARDING_STAGE_LABEL,
@@ -17,10 +18,11 @@ import {
   draftKitFromInput,
   nextStage,
   prevStage,
+  routeForFirstMake,
   stageIndex,
   type BrandInputSet,
   type ColorPreference,
-  type LogoStylePreference,
+  type FirstMakeChoice,
   type OnboardingStage,
 } from "@/lib/identity/engine-scaffold";
 
@@ -38,8 +40,9 @@ export default function StartPage() {
     colorPreference: "",
   });
   const [approved, setApproved] = useState(false);
+  const [firstMake, setFirstMake] = useState<FirstMakeChoice>(FIRST_MAKE_DEFAULT);
   const [picked, setPicked] = useState<
-    Partial<Record<keyof BrandInputSet | "approval", boolean>>
+    Partial<Record<keyof BrandInputSet | "approval" | "firstMake", boolean>>
   >({});
   const [pending, setPending] = useState(false);
 
@@ -73,10 +76,20 @@ export default function StartPage() {
     });
   }
 
+  function pickFirstMake() {
+    setFirstMake(FIRST_MAKE_DEFAULT);
+    setPicked((p) => ({ ...p, firstMake: true }));
+  }
+
   function pickEverything() {
     pickBrief();
     setApproved(true);
-    setPicked((p) => ({ ...p, approval: true }));
+    setFirstMake(FIRST_MAKE_DEFAULT);
+    setPicked((p) => ({
+      ...p,
+      approval: true,
+      firstMake: true,
+    }));
     setStage("kit_review");
   }
 
@@ -98,7 +111,7 @@ export default function StartPage() {
       goNext();
       return;
     }
-    if (!ready || !approved) return;
+    if (!ready || !approved || !firstMake) return;
     setPending(true);
     const payload = {
       input,
@@ -106,6 +119,7 @@ export default function StartPage() {
       stage: "brand_vault" as const,
       approved: true,
       vaultSaved: true,
+      firstMake,
       pickedForYou: picked,
       // bridge fields for This is You / Quick posts readers
       aboutYou: input.brandName,
@@ -129,7 +143,7 @@ export default function StartPage() {
       setPending(false);
       return;
     }
-    router.replace(IDENTITY_ROUTE_AFTER_ACTIVATION);
+    router.replace(routeForFirstMake(firstMake));
   }
 
   return (
@@ -152,7 +166,7 @@ export default function StartPage() {
 
         <p className="step-pill">
           Step {stepNum} of {ONBOARDING_STAGES.length}
-          {" · "}
+          {" - "}
           {ONBOARDING_STAGE_LABEL[stage]}
         </p>
         <h1>{IDENTITY_COPY.title}</h1>
@@ -262,8 +276,14 @@ export default function StartPage() {
             <>
               <h2 className="review-heading">{IDENTITY_COPY.engineRunTitle}</h2>
               <p className="field-hint">{IDENTITY_COPY.engineRunBody}</p>
+              <p className="field-hint" aria-live="polite">
+                {IDENTITY_COPY.engineRunProgress}
+              </p>
               <article className="module-card">
-                <p>Building kit for <strong>{input.brandName}</strong>…</p>
+                <p>
+                  Building kit for <strong>{input.brandName || "your brand"}</strong>
+                  ...
+                </p>
                 <ul>
                   <li>{kit.paletteLabel}</li>
                   <li>{kit.typographyLabel}</li>
@@ -390,11 +410,41 @@ export default function StartPage() {
                 <p>{input.industry}</p>
                 <p>{input.moodWords}</p>
               </article>
+              <div className="field-head">
+                <span>{IDENTITY_COPY.firstMakeLabel}</span>
+                <button type="button" className="pick-one" onClick={pickFirstMake}>
+                  {IDENTITY_COPY.pickForMe}
+                </button>
+              </div>
+              <p className="field-hint">{IDENTITY_COPY.firstMakeHint}</p>
+              <div className="goal-options" role="radiogroup" aria-label={IDENTITY_COPY.firstMakeLabel}>
+                {FIRST_MAKE_OPTIONS.map((opt) => (
+                  <button
+                    key={opt.id}
+                    type="button"
+                    role="radio"
+                    aria-checked={firstMake === opt.id}
+                    className={
+                      firstMake === opt.id ? "goal-option is-active" : "goal-option"
+                    }
+                    onClick={() => {
+                      setFirstMake(opt.id);
+                      setPicked((p) => ({ ...p, firstMake: false }));
+                    }}
+                  >
+                    <strong>{opt.label}</strong>
+                  </button>
+                ))}
+              </div>
               <div className="step-actions">
                 <button type="button" className="step-back" onClick={goBack}>
                   {IDENTITY_COPY.back}
                 </button>
-                <button className="login-submit" type="submit" disabled={pending}>
+                <button
+                  className="login-submit"
+                  type="submit"
+                  disabled={pending || !firstMake}
+                >
                   {pending ? IDENTITY_COPY.saving : IDENTITY_COPY.vaultCta}
                 </button>
               </div>

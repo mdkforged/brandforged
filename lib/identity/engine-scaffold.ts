@@ -6,6 +6,13 @@
 export type LogoStylePreference = "wordmark" | "icon" | "combo";
 export type ColorPreference = "warm" | "cool" | "neutral" | "bold" | "";
 
+/** Layer 2 post-kit first deliverable (not Brand Input). */
+export type FirstMakeChoice =
+  | "logo"
+  | "identity_guide"
+  | "social"
+  | "website";
+
 /** Workflow 4.2 stages */
 export type OnboardingStage =
   | "brief"
@@ -28,7 +35,7 @@ export const ONBOARDING_STAGES: readonly OnboardingStage[] = [
 
 export const ONBOARDING_STAGE_LABEL: Record<OnboardingStage, string> = {
   brief: "Welcome and Brief",
-  engine_run: "Identity Engine Run",
+  engine_run: "Building workspace",
   kit_review: "Brand Kit Review",
   sticker_book: "Sticker Book Activated",
   first_template: "First Template",
@@ -61,7 +68,9 @@ export type IdentitySession = {
   stage: OnboardingStage;
   approved: boolean;
   vaultSaved: boolean;
-  pickedForYou?: Partial<Record<keyof BrandInputSet | "approval", boolean>>;
+  /** Post-kit routing choice (Layer 2) - not part of Brand Input. */
+  firstMake?: FirstMakeChoice;
+  pickedForYou?: Partial<Record<keyof BrandInputSet | "approval" | "firstMake", boolean>>;
   socialSites?: string[];
   referencePhotos?: [string, string, string];
   savedAt: string;
@@ -71,6 +80,51 @@ export type IdentitySession = {
 export const IDENTITY_STORAGE_KEY = "bf-identity-v1";
 export const LEGACY_ONBOARDING_STORAGE_KEY = "bf-onboarding-v1";
 export const IDENTITY_ROUTE_AFTER_ACTIVATION = "/you" as const;
+
+export const FIRST_MAKE_DEFAULT: FirstMakeChoice = "social";
+
+export const FIRST_MAKE_OPTIONS: {
+  id: FirstMakeChoice;
+  label: string;
+  cta: string;
+  href: "/you" | "/you/posts";
+}[] = [
+  { id: "logo", label: "Logo", cta: "Continue: Logo", href: "/you" },
+  {
+    id: "identity_guide",
+    label: "Brand Identity Guide",
+    cta: "Continue: Brand Identity Guide",
+    href: "/you",
+  },
+  {
+    id: "social",
+    label: "Social Media Assets",
+    cta: "Continue: Social media assets",
+    href: "/you/posts",
+  },
+  {
+    id: "website",
+    label: "Website Design",
+    cta: "Continue: Website design",
+    href: "/you",
+  },
+];
+
+export function routeForFirstMake(firstMake: FirstMakeChoice): "/you" | "/you/posts" {
+  const opt = FIRST_MAKE_OPTIONS.find((o) => o.id === firstMake);
+  return opt?.href ?? "/you";
+}
+
+export function labelForFirstMake(firstMake: FirstMakeChoice): string {
+  return FIRST_MAKE_OPTIONS.find((o) => o.id === firstMake)?.label ?? "Your first make";
+}
+
+export function ctaForFirstMake(firstMake: FirstMakeChoice): string {
+  return (
+    FIRST_MAKE_OPTIONS.find((o) => o.id === firstMake)?.cta ??
+    "Continue on This is You"
+  );
+}
 
 export const BRAND_INPUT_PICKS: BrandInputSet = {
   brandName: "Tethered and Truth",
@@ -116,9 +170,10 @@ export const IDENTITY_COPY = {
   moodLabel: "4. Mood words (3-5 keywords)",
   logoLabel: "5. Logo style preference",
   colorLabel: "Color preference (optional)",
-  engineRunTitle: "Generating your brand kit",
+  engineRunTitle: "Building your custom brand workspace...",
   engineRunBody:
-    "Identity Engine Run - locked palette, type, logo set, voice guide, and template pack from your brief.",
+    "Hang tight - we're assembling your draft kit from your brief.",
+  engineRunProgress: "Generating palette, type, logo set, and voice guide...",
   reviewTitle: "Brand Kit Review",
   reviewHint: "Approve palette, fonts, and logo before stickers activate.",
   approveYes: "Approve kit",
@@ -134,6 +189,9 @@ export const IDENTITY_COPY = {
     "Export Router will send assets to platform destinations after Palette Enforcement.",
   vaultTitle: "Brand Vault Saved",
   vaultBody: "Archive this kit to your Brand Vault and open This is You.",
+  firstMakeLabel: "What do you want to make first?",
+  firstMakeHint:
+    "After your kit is saved, we'll take you to the right place. This is not one of the five Brand Input questions.",
   vaultCta: "Save to Brand Vault",
   saving: "Saving...",
   pipelineNote:

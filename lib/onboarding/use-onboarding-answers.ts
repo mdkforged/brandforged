@@ -6,6 +6,7 @@ import {
   LEGACY_ONBOARDING_STORAGE_KEY,
   type BrandInputSet,
   type BrandKitDraft,
+  type FirstMakeChoice,
   type IdentitySession,
 } from "@/lib/identity/engine-scaffold";
 import type { SocialSiteId } from "@/lib/onboarding/social";
@@ -19,6 +20,7 @@ export type OnboardingAnswers = {
   pickedForYou?: Record<string, boolean | undefined>;
   savedAt: string;
   brandName?: string;
+  firstMake?: FirstMakeChoice;
   input?: BrandInputSet;
   kit?: BrandKitDraft;
   session?: IdentitySession;
@@ -57,10 +59,25 @@ function getServerSnapshot() {
 type StoredBlob = Partial<IdentitySession> &
   Partial<OnboardingAnswers> & {
     brandName?: string;
+    firstMake?: FirstMakeChoice;
     input?: BrandInputSet;
     kit?: BrandKitDraft;
     activatedAt?: string;
   };
+
+const FIRST_MAKE_IDS: FirstMakeChoice[] = [
+  "logo",
+  "identity_guide",
+  "social",
+  "website",
+];
+
+function parseFirstMake(value: unknown): FirstMakeChoice | undefined {
+  if (typeof value !== "string") return undefined;
+  return FIRST_MAKE_IDS.includes(value as FirstMakeChoice)
+    ? (value as FirstMakeChoice)
+    : undefined;
+}
 
 function toAnswers(raw: string): OnboardingAnswers | null {
   try {
@@ -78,6 +95,7 @@ function toAnswers(raw: string): OnboardingAnswers | null {
       "";
     const referencePhotos = parsed.referencePhotos;
     const socialSites = parsed.socialSites;
+    const firstMake = parseFirstMake(parsed.firstMake);
     if (!aboutYou.trim()) return null;
     if (!Array.isArray(referencePhotos) || referencePhotos.length !== 3) {
       return null;
@@ -92,6 +110,7 @@ function toAnswers(raw: string): OnboardingAnswers | null {
             stage: parsed.stage,
             approved: Boolean(parsed.approved),
             vaultSaved: Boolean(parsed.vaultSaved),
+            firstMake,
             pickedForYou: parsed.pickedForYou as IdentitySession["pickedForYou"],
             socialSites: socialSites as string[],
             referencePhotos: referencePhotos as [string, string, string],
@@ -108,6 +127,7 @@ function toAnswers(raw: string): OnboardingAnswers | null {
       pickedForYou: parsed.pickedForYou as OnboardingAnswers["pickedForYou"],
       savedAt: parsed.savedAt || parsed.activatedAt || new Date().toISOString(),
       brandName: brandName || undefined,
+      firstMake,
       input: input,
       kit: parsed.kit,
       session,

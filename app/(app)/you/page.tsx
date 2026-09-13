@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { LockedAsYouPhotos } from "@/components/you/locked-as-you-photos";
 import { QuickSocialPostsBox } from "@/components/you/quick-social-posts-box";
+import { YouHomeGreeting } from "@/components/you/you-home-greeting";
 
 export const metadata: Metadata = {
   title: "This is You | Brand Forged",
@@ -10,7 +11,7 @@ export const metadata: Metadata = {
 const modules = [
   {
     title: "Voice",
-    note: "How you sound. We'll keep this close to you — nothing to fill out yet.",
+    note: "How you sound. We'll keep this close to you - nothing to fill out yet.",
   },
   {
     title: "Ideas",
@@ -25,16 +26,7 @@ const modules = [
 export default function ThisIsYouPage() {
   return (
     <>
-      <div className="page-intro">
-        <div>
-          <p className="eyebrow">This is You</p>
-          <h1>Who you are.</h1>
-          <p className="intro-copy">
-            Your voice, your look, your ideas. Nothing to set up. We&apos;ll gather
-            this as we go so you can stay with the work that matters.
-          </p>
-        </div>
-      </div>
+      <YouHomeGreeting />
 
       <QuickSocialPostsBox />
 
