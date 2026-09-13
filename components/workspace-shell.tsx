@@ -43,7 +43,6 @@ export function WorkspaceShell({ children }: WorkspaceShellProps) {
           />
           <div>
             <strong>Brand Forged</strong>
-            <em>Forge Green</em>
           </div>
         </Link>
 
@@ -52,7 +51,7 @@ export function WorkspaceShell({ children }: WorkspaceShellProps) {
           className="workspace-switcher"
           onClick={cycleWorkspace}
           aria-label={`Switch workspace. Current: ${activeWorkspace.name}`}
-          title="Demo workspaces — click to switch"
+          title="Demo workspaces â€” click to switch"
         >
           <span className="workspace-dot" />
           <div>
