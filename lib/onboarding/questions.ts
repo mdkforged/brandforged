@@ -22,7 +22,7 @@ export {
 /** Legacy alias - prefer BRAND_INPUT_PICKS */
 export { BRAND_INPUT_PICKS as IDENTITY_PICKS } from "@/lib/identity/engine-scaffold";
 
-/** @deprecated photos no longer collected in DR-011 brief; bridge keeps 3 placeholders */
+/** Primary look slots shown first; array may hold more via Look + Add photo. */
 export const REFERENCE_PHOTO_COUNT = 3 as const;
 
 /** @deprecated kept for any leftover upload helpers */
@@ -44,7 +44,7 @@ export type OnboardingAnswers = {
   whyHere?: string;
   goal?: "you" | "world" | "both";
   contentStyle: string;
-  referencePhotos: [string, string, string];
+  referencePhotos: string[];
   socialSites: import("@/lib/onboarding/social").SocialSiteId[];
   pickedForYou?: Record<string, boolean | undefined>;
   savedAt: string;

@@ -32,7 +32,7 @@ export default function HomePage() {
             Start with This is You. Your World opens when you upgrade.
           </p>
           <p>
-            <Link href="/start" className="door-upgrade-btn">
+            <Link href="/start" className="door-upgrade-btn get-started-btn">
               Get started
             </Link>
           </p>

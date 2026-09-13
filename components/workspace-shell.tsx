@@ -102,7 +102,7 @@ export function WorkspaceShell({ children }: WorkspaceShellProps) {
             {isHome ? "Home" : currentDoor?.label ?? "Home"}
           </div>
           <div className="top-actions">
-            <Link href="/start" className="new-button">
+            <Link href="/start" className="door-upgrade-btn get-started-btn">
               Get started
             </Link>
           </div>

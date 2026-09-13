@@ -43,7 +43,7 @@ export function QuickSocialPostsBox() {
       <span className="quick-posts-sites">
         {sites.length > 0
           ? sites.map(labelForSite).join(" · ")
-          : "Your templates for the sites you checked"}
+          : "Your ready packs for the sites you checked"}
       </span>
     </Link>
   );

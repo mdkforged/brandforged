@@ -7,7 +7,7 @@
 export type StyleFingerprintInput = {
   contentStyle: string;
   /** Stable ids or hashes of the three reference photos. */
-  referencePhotoKeys: [string, string, string];
+  referencePhotoKeys: string[];
   socialSites: string[];
   /** Optional palette / type cues when present. */
   energyStrikeId?: string;

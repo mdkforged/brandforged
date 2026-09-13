@@ -11,11 +11,14 @@ import {
 } from "@/lib/identity/engine-scaffold";
 import type { SocialSiteId } from "@/lib/onboarding/social";
 
+export const IDENTITY_UPDATED_EVENT = "bf-identity-updated";
+
 /** Bridge answers for This is You / Quick posts (aboutYou + contentStyle still written by /start). */
 export type OnboardingAnswers = {
   aboutYou: string;
   contentStyle: string;
-  referencePhotos: [string, string, string];
+  /** Look + social photos; first 3 kept as primary look for older readers. */
+  referencePhotos: string[];
   socialSites: SocialSiteId[];
   pickedForYou?: Record<string, boolean | undefined>;
   savedAt: string;
@@ -45,11 +48,14 @@ function subscribe(onStoreChange: () => void) {
     }
   };
   const onFocus = () => onStoreChange();
+  const onCustom = () => onStoreChange();
   window.addEventListener("storage", onStorage);
   window.addEventListener("focus", onFocus);
+  window.addEventListener(IDENTITY_UPDATED_EVENT, onCustom);
   return () => {
     window.removeEventListener("storage", onStorage);
     window.removeEventListener("focus", onFocus);
+    window.removeEventListener(IDENTITY_UPDATED_EVENT, onCustom);
   };
 }
 
@@ -94,12 +100,22 @@ function parseFirstMake(value: unknown): FirstMakeChoice | undefined {
     : undefined;
 }
 
-function normalizeReferencePhotos(value: unknown): [string, string, string] {
-  if (!Array.isArray(value)) return ["", "", ""];
-  const asStrings = value.map((item) =>
-    typeof item === "string" ? item : "",
+/** Brand Forged logo marks used as temporary stand-ins — never "your look". */
+export function isPlaceholderPhoto(src: string): boolean {
+  if (!src) return true;
+  if (src.startsWith("data:")) return false;
+  return (
+    src.startsWith("/brand/logo-") ||
+    src.includes("/brand/logo-") ||
+    /\/brand\/logo-[^/?#]+\.webp(?:\?|$)/i.test(src)
   );
-  return [asStrings[0] || "", asStrings[1] || "", asStrings[2] || ""];
+}
+
+function normalizeReferencePhotos(value: unknown): string[] {
+  if (!Array.isArray(value)) return [];
+  return value
+    .map((item) => (typeof item === "string" ? item : ""))
+    .filter((item) => item.length > 0);
 }
 
 /**
@@ -214,4 +230,53 @@ export function useOnboardingAnswers(): OnboardingAnswers | null {
 export function useIsStarted(): boolean {
   const answers = useOnboardingAnswers();
   return hasFinishedStart(answers);
+}
+
+function notifyIdentityUpdated() {
+  if (typeof window === "undefined") return;
+  window.dispatchEvent(new Event(IDENTITY_UPDATED_EVENT));
+}
+
+/**
+ * Persist look / social photos to bf-identity-v1 and refresh listeners.
+ * Allows 0+ photos; clears pickedForYou.photos when uploads replace placeholders.
+ */
+export function updateReferencePhotos(
+  photos: string[],
+  options?: { clearPickedPhotos?: boolean },
+): void {
+  if (typeof window === "undefined") return;
+  const cleaned = photos.filter((p) => typeof p === "string" && p.length > 0);
+  let raw: string | null = null;
+  try {
+    raw =
+      window.localStorage.getItem(IDENTITY_STORAGE_KEY) ||
+      window.localStorage.getItem(LEGACY_ONBOARDING_STORAGE_KEY);
+  } catch {
+    return;
+  }
+  let blob: Record<string, unknown> = {};
+  if (raw) {
+    try {
+      blob = JSON.parse(raw) as Record<string, unknown>;
+    } catch {
+      blob = {};
+    }
+  }
+  blob.referencePhotos = cleaned;
+  if (options?.clearPickedPhotos) {
+    const picked =
+      blob.pickedForYou && typeof blob.pickedForYou === "object"
+        ? { ...(blob.pickedForYou as Record<string, unknown>) }
+        : {};
+    picked.photos = false;
+    blob.pickedForYou = picked;
+  }
+  blob.savedAt = new Date().toISOString();
+  try {
+    window.localStorage.setItem(IDENTITY_STORAGE_KEY, JSON.stringify(blob));
+  } catch {
+    return;
+  }
+  notifyIdentityUpdated();
 }

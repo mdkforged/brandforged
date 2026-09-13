@@ -652,27 +652,78 @@ a.brand-mark { color: inherit; text-decoration: none; }
 
 /* Locked-in reference photos on This is You */
 .look-card { margin-bottom: 18px; }
-.locked-you { display: grid; gap: 12px; }
+.locked-you { display: grid; gap: 14px; }
 .locked-you-copy {
   color: rgba(214, 220, 214, 0.88);
   font-size: 14px;
   line-height: 1.45;
   margin: 0;
 }
+.locked-you-group { display: grid; gap: 8px; }
+.locked-you-group-label {
+  color: rgba(214, 220, 214, 0.72);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  margin: 0;
+  text-transform: uppercase;
+}
 .locked-you-grid {
   display: grid;
   gap: 10px;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(96px, 1fr));
 }
-.locked-you-photo {
-  aspect-ratio: 1;
+.locked-you-photo,
+.locked-you-add-tile {
+  aspect-ratio: 1 / 1;
   border-radius: 12px;
-  display: block;
+  height: auto;
   object-fit: cover;
   width: 100%;
 }
+.locked-you-photo {
+  display: block;
+  max-width: 100%;
+}
+.locked-you-add-tile {
+  align-items: center;
+  background: rgba(57, 255, 20, 0.08);
+  border: 1px dashed rgba(57, 255, 20, 0.45);
+  color: #e8ffe4;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  font-weight: 700;
+  gap: 4px;
+  justify-content: center;
+  padding: 8px;
+}
+.locked-you-add-tile span { font-size: 28px; line-height: 1; }
+.locked-you-add-tile small { font-size: 11px; font-weight: 600; }
+.locked-you-add {
+  background: rgba(57, 255, 20, 0.16);
+  border: 1px solid rgba(57, 255, 20, 0.45);
+  border-radius: 999px;
+  color: #e8ffe4;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 700;
+  padding: 12px 18px;
+}
+.locked-you-file {
+  height: 0;
+  opacity: 0;
+  position: absolute;
+  width: 0;
+}
+.locked-you-actions { display: flex; gap: 10px; }
+.locked-you-error {
+  color: #ffb4b4;
+  font-size: 13px;
+  margin: 0;
+}
 
-/* You pick for me ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€¦Ã‚Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â every onboarding ask */
+/* You pick for me — every onboarding ask */
 .pick-all {
   background: rgba(57, 255, 20, 0.12);
   border: 1px solid rgba(57, 255, 20, 0.35);
@@ -827,7 +878,7 @@ a.brand-mark { color: inherit; text-decoration: none; }
   margin: 0 0 6px;
 }
 
-/* Door access ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Â Your World upgrade */
+/* Door access — Your World upgrade */
 .home-door.is-locked {
   cursor: not-allowed;
   opacity: 0.72;
@@ -880,13 +931,85 @@ a.brand-mark { color: inherit; text-decoration: none; }
   border: 1px solid rgba(57, 255, 20, 0.45);
   border-radius: 999px;
   color: #e8ffe4;
+  cursor: pointer;
   display: inline-block;
   font-size: 13px;
   font-weight: 700;
   margin-top: 12px;
-  padding: 10px 16px;
+  padding: 12px 20px;
+  position: relative;
   text-align: center;
   text-decoration: none;
+  z-index: 2;
+}
+.door-upgrade-btn:disabled {
+  cursor: not-allowed;
+  opacity: 0.55;
+}
+.door-upgrade-btn-ghost {
+  background: transparent;
+  border-color: rgba(214, 220, 214, 0.35);
+  color: #e8ebe6;
+}
+.get-started-btn {
+  font-size: 15px;
+  padding: 16px 28px;
+  z-index: 5;
+}
+.template-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 4px;
+}
+.posts-section-title {
+  font-size: 18px;
+  margin: 8px 0 12px;
+}
+.need-box-hint {
+  color: rgba(214, 220, 214, 0.82);
+  font-size: 14px;
+  margin: 0 0 10px;
+}
+.dup-picker {
+  display: grid;
+  gap: 8px;
+  margin-top: 12px;
+}
+.dup-picker-label {
+  color: rgba(214, 220, 214, 0.75);
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  margin: 0;
+  text-transform: uppercase;
+}
+.dup-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.dup-chip {
+  align-items: center;
+  background: rgba(214, 220, 214, 0.08);
+  border: 1px solid rgba(214, 220, 214, 0.22);
+  border-radius: 999px;
+  color: #e8ebe6;
+  cursor: pointer;
+  display: inline-flex;
+  font-size: 12px;
+  gap: 6px;
+  padding: 6px 10px;
+}
+.sr-only {
+  border: 0;
+  clip: rect(0, 0, 0, 0);
+  height: 1px;
+  margin: -1px;
+  overflow: hidden;
+  padding: 0;
+  position: absolute;
+  width: 1px;
 }
 .door-upgrade-hint,
 .door-upgrade-status {

@@ -75,7 +75,7 @@ export type IdentitySession = {
   firstMake?: FirstMakeChoice;
   pickedForYou?: Partial<Record<keyof BrandInputSet | "approval" | "firstMake" | "socialSites" | "photos", boolean>>;
   socialSites?: string[];
-  referencePhotos?: [string, string, string];
+  referencePhotos?: string[];
   /** User already has a logo / brand mark (upload optional). */
   hasExistingLogo?: boolean;
   /** Optional logo / brand mark data URL from /start upload. */

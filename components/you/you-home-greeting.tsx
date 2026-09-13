@@ -40,7 +40,7 @@ export function YouHomeGreeting() {
             brand, pick your socials, and unlock your workspace.
           </p>
           <p>
-            <Link href="/start" className="door-upgrade-btn">
+            <Link href="/start" className="door-upgrade-btn get-started-btn">
               Get started
             </Link>
           </p>
