@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import { FormEvent, Suspense, useMemo, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
@@ -12,8 +12,8 @@ function LoginForm() {
   const searchParams = useSearchParams();
   const nextPath = searchParams.get("next") || "/";
   const configured = useMemo(() => isAuthConfigured(), []);
-  const [mode, setMode] = useState<Mode>("signup");
-  const [email, setEmail] = useState("tetheredntruth@gmail.com");
+  const [mode, setMode] = useState<Mode>("signin");
+  const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [info, setInfo] = useState<string | null>(null);
@@ -41,7 +41,7 @@ function LoginForm() {
           router.refresh();
           return;
         }
-        setInfo("Check your email to confirm the account, then sign in.");
+        setInfo("Account created. If email confirm is on, check your inbox — or ask your builder to confirm you.");
         setMode("signin");
         return;
       }
@@ -66,19 +66,20 @@ function LoginForm() {
   if (!configured) {
     return (
       <main className="login-page">
+        <div className="login-aura" aria-hidden />
         <div className="login-card">
           <div className="login-brand">
-            <span>BF</span>
+            <span className="login-mark" aria-hidden>
+              ƎF
+            </span>
             <div>
-              <strong>Brand</strong>
-              <em>Forged</em>
+              <strong>Brand Forged</strong>
+              <em>Workspace</em>
             </div>
           </div>
           <h1>Sign in</h1>
           <p className="login-copy">
-            Authentication is not configured. Set{" "}
-            <code>NEXT_PUBLIC_SUPABASE_URL</code> and{" "}
-            <code>NEXT_PUBLIC_SUPABASE_ANON_KEY</code>.
+            Authentication is not configured yet. Set the Supabase keys and reload.
           </p>
         </div>
       </main>
@@ -87,20 +88,23 @@ function LoginForm() {
 
   return (
     <main className="login-page">
+      <div className="login-aura" aria-hidden />
       <div className="login-card">
         <div className="login-brand">
-          <span>BF</span>
+          <span className="login-mark" aria-hidden>
+            ƎF
+          </span>
           <div>
-            <strong>Brand</strong>
-            <em>Forged</em>
+            <strong>Brand Forged</strong>
+            <em>Workspace</em>
           </div>
         </div>
-        <p className="eyebrow">Workspace access</p>
-        <h1>{mode === "signup" ? "Create account" : "Sign in"}</h1>
+        <p className="eyebrow">Private access</p>
+        <h1>{mode === "signup" ? "Create account" : "Welcome back"}</h1>
         <p className="login-copy">
           {mode === "signup"
-            ? "Set a password for your Brand Forged workspace."
-            : "Welcome back. Use your workspace email to continue."}
+            ? "One email. One password. Your workspace opens from here."
+            : "Sign in to open your doors — This is You and Your World."}
         </p>
 
         <form className="login-form" onSubmit={onSubmit}>
@@ -110,6 +114,7 @@ function LoginForm() {
               type="email"
               autoComplete="email"
               required
+              placeholder="you@email.com"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
             />
@@ -121,6 +126,7 @@ function LoginForm() {
               autoComplete={mode === "signup" ? "new-password" : "current-password"}
               required
               minLength={8}
+              placeholder="••••••••"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
             />
@@ -165,8 +171,9 @@ export default function LoginPage() {
     <Suspense
       fallback={
         <main className="login-page">
+          <div className="login-aura" aria-hidden />
           <div className="login-card">
-            <h1>Sign in</h1>
+            <h1>Welcome back</h1>
             <p className="login-copy">Loading…</p>
           </div>
         </main>
