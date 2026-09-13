@@ -3,7 +3,7 @@
 | Field | Value |
 | --- | --- |
 | **ID** | DR-2026-09-13-006 |
-| **Title** | Quick onboarding questions â€” we set up for the client |
+| **Title** | Quick onboarding questions Ã¢â‚¬â€ we set up for the client |
 | **Date** | 2026-09-13 |
 | **Status** | Adopted (founder direction) |
 | **Owner** | Founder / Strategy Room |
@@ -13,8 +13,9 @@ Brand Forged starts with **a few quick, direct questions**. Answers make the pla
 
 ## First questions (v1)
 1. **Who are we building for?**
-2. **What's your content style?** — one plain ask (photos, quotes, videos, posts)
-3. **What should we set up for you first?** — This is You / Your World / Both
+2. **What's your content style?** â€” one plain ask (photos, quotes, videos, posts)
+3. **Lock in as you** — upload 3 reference photos
+4. **What should we set up for you first?** â€” This is You / Your World / Both
 ## UX
 - Route: `/start`
 - Tone: we work for you ("Set it up for me")

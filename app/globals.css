@@ -16,7 +16,7 @@ button.workspace-switcher { color: inherit; cursor: pointer; font: inherit; text
 @media (max-width: 620px) { .app-shell { display: block; }.sidebar { padding: 18px; width: 100%; }.brand-mark { margin: 0 0 20px; }.workspace-switcher { max-width: 300px; }.nav-label,.nav-list,.sidebar-bottom { display: none; }.topbar { padding: 17px 20px; }.top-actions { gap: 10px; }.new-button { padding: 10px; }.content-inner { padding: 35px 20px 50px; }.page-intro { display: block; }.health-badge { display: inline-flex; margin-top: 22px; }.stats-grid { gap: 8px; margin-bottom: 24px; }.stat-card { padding: 15px; }.stat-card strong { font-size: 31px; }.panel { padding: 20px 16px; }.project-row { gap: 8px; }.project-info strong { font-size: 13px; }.status { display: none; }.focus-strip { align-items: flex-start; flex-wrap: wrap; padding: 20px; }.focus-strip .dark-button { margin-left: 63px; } }
 
 
-/* Auth / login ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Â forged platinum (scoped under .login-shell) */
+/* Auth / login ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â forged platinum (scoped under .login-shell) */
 .login-shell {
   --login-ink: #0b0d0c;
   --login-panel: #141816;
@@ -360,7 +360,7 @@ a.brand-mark { color: inherit; text-decoration: none; }
   .home-door { min-height: 200px; padding: 28px 22px; }
 }
 
-/* Forged shell + home Ã¢â‚¬â€ matches login (Forge Green app face) */
+/* Forged shell + home ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Â matches login (Forge Green app face) */
 .forged-shell {
   --energy: #b6ff2e;
   --ink: #0b0d0c;
@@ -544,7 +544,7 @@ a.brand-mark { color: inherit; text-decoration: none; }
   max-width: 420px;
 }
 
-/* Onboarding /start — quick questions */
+/* Onboarding /start â€” quick questions */
 .start-card .login-logo { max-width: min(180px, 50vw); }
 .field-hint {
   color: rgba(168, 174, 168, 0.75);
@@ -592,4 +592,60 @@ a.brand-mark { color: inherit; text-decoration: none; }
 .goal-option.is-active {
   border-color: color-mix(in srgb, var(--energy, #b6ff2e) 75%, white);
   box-shadow: 0 0 0 2px var(--energy-soft, rgba(182, 255, 46, 0.25));
+}
+
+/* Lock in as you — 3 reference photos */
+.photo-lockin { display: grid; gap: 8px; margin-top: 4px; }
+.photo-lockin-label {
+  color: var(--login-platinum-soft, #a8aea8);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  margin: 0;
+  text-transform: uppercase;
+}
+.photo-lockin-hint { margin: 0; }
+.photo-slots {
+  display: grid;
+  gap: 10px;
+  grid-template-columns: repeat(3, 1fr);
+}
+.photo-slot {
+  aspect-ratio: 1;
+  background: rgba(7, 9, 8, 0.65);
+  border: 1px dashed rgba(214, 220, 214, 0.28);
+  border-radius: 12px;
+  overflow: hidden;
+  position: relative;
+}
+.photo-add {
+  align-items: center;
+  color: rgba(168, 174, 168, 0.95);
+  cursor: pointer;
+  display: flex;
+  font-size: 12px;
+  font-weight: 600;
+  height: 100%;
+  justify-content: center;
+  text-align: center;
+  width: 100%;
+}
+.photo-add input { display: none; }
+.photo-preview {
+  display: block;
+  height: 100%;
+  object-fit: cover;
+  width: 100%;
+}
+.photo-clear {
+  background: rgba(0, 0, 0, 0.65);
+  bottom: 0;
+  color: #f4f6f2;
+  font-size: 11px;
+  font-weight: 600;
+  left: 0;
+  padding: 8px 4px;
+  position: absolute;
+  right: 0;
+  width: 100%;
 }

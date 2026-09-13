@@ -1,11 +1,19 @@
 "use client";
 
-import { FormEvent, useMemo, useState, type CSSProperties } from "react";
+import {
+  FormEvent,
+  useMemo,
+  useState,
+  type CSSProperties,
+  type ChangeEvent,
+} from "react";
 import { useRouter } from "next/navigation";
 import { getEnergyStrike } from "@/lib/brand/energy-strike";
 import {
   ONBOARDING_COPY,
   ONBOARDING_STORAGE_KEY,
+  REFERENCE_PHOTO_COUNT,
+  fileToReferenceDataUrl,
   pathForGoal,
   type OnboardingGoal,
 } from "@/lib/onboarding/questions";
@@ -16,6 +24,12 @@ export default function StartPage() {
   const router = useRouter();
   const [aboutYou, setAboutYou] = useState("");
   const [contentStyle, setContentStyle] = useState("");
+  const [photos, setPhotos] = useState<(string | null)[]>([
+    null,
+    null,
+    null,
+  ]);
+  const [photoError, setPhotoError] = useState<string | null>(null);
   const [goal, setGoal] = useState<OnboardingGoal | null>(null);
   const [pending, setPending] = useState(false);
 
@@ -28,23 +42,67 @@ export default function StartPage() {
     [],
   );
 
+  const photosReady = photos.every((p) => Boolean(p));
   const canSubmit =
-    Boolean(goal) && aboutYou.trim().length > 0 && contentStyle.trim().length > 0;
+    Boolean(goal) &&
+    aboutYou.trim().length > 0 &&
+    contentStyle.trim().length > 0 &&
+    photosReady;
+
+  async function onPhotoChange(
+    index: number,
+    event: ChangeEvent<HTMLInputElement>,
+  ) {
+    const file = event.target.files?.[0];
+    event.target.value = "";
+    if (!file) return;
+    if (!file.type.startsWith("image/")) {
+      setPhotoError("Use a photo file (JPG, PNG, etc.).");
+      return;
+    }
+    try {
+      setPhotoError(null);
+      const dataUrl = await fileToReferenceDataUrl(file);
+      setPhotos((current) => {
+        const next = [...current];
+        next[index] = dataUrl;
+        return next;
+      });
+    } catch {
+      setPhotoError("Couldn’t read that photo. Try another.");
+    }
+  }
+
+  function clearPhoto(index: number) {
+    setPhotos((current) => {
+      const next = [...current];
+      next[index] = null;
+      return next;
+    });
+  }
 
   function onSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    if (!goal || !aboutYou.trim() || !contentStyle.trim()) return;
+    if (!goal || !aboutYou.trim() || !contentStyle.trim() || !photosReady) {
+      return;
+    }
     setPending(true);
+    const referencePhotos = photos as [string, string, string];
     const payload = {
       aboutYou: aboutYou.trim(),
       contentStyle: contentStyle.trim(),
+      referencePhotos,
       goal,
       savedAt: new Date().toISOString(),
     };
     try {
       window.localStorage.setItem(ONBOARDING_STORAGE_KEY, JSON.stringify(payload));
     } catch {
-      /* ignore — still route them */
+      setPending(false);
+      setPhotoError(
+        "Those photos are a bit large for this device to keep. Try slightly smaller shots.",
+      );
+      return;
     }
     router.replace(pathForGoal(goal));
   }
@@ -95,6 +153,50 @@ export default function StartPage() {
             />
             <small className="field-hint">{ONBOARDING_COPY.contentStyleHint}</small>
           </label>
+
+          <div className="photo-lockin">
+            <p className="photo-lockin-label">{ONBOARDING_COPY.photosLabel}</p>
+            <p className="field-hint photo-lockin-hint">
+              {ONBOARDING_COPY.photosHint}
+            </p>
+            <div className="photo-slots">
+              {Array.from({ length: REFERENCE_PHOTO_COUNT }).map((_, index) => {
+                const preview = photos[index];
+                return (
+                  <div key={index} className="photo-slot">
+                    {preview ? (
+                      <>
+                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                        <img src={preview} alt="" className="photo-preview" />
+                        <button
+                          type="button"
+                          className="photo-clear"
+                          onClick={() => clearPhoto(index)}
+                        >
+                          Replace
+                        </button>
+                      </>
+                    ) : (
+                      <label className="photo-add">
+                        <span>{ONBOARDING_COPY.photoSlotLabels[index]}</span>
+                        <input
+                          type="file"
+                          accept="image/*"
+                          capture="environment"
+                          onChange={(e) => onPhotoChange(index, e)}
+                        />
+                      </label>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+            {photoError ? (
+              <p className="login-alert" role="alert">
+                {photoError}
+              </p>
+            ) : null}
+          </div>
 
           <fieldset className="goal-fieldset">
             <legend>{ONBOARDING_COPY.goalLabel}</legend>
