@@ -10,45 +10,39 @@ import {
 import { useRouter } from "next/navigation";
 import { getEnergyStrike } from "@/lib/brand/energy-strike";
 import {
-  ONBOARDING_COPY,
-  ONBOARDING_LOCKED_GOAL,
-  ONBOARDING_PICKS,
-  ONBOARDING_ROUTE_AFTER_SETUP,
-  ONBOARDING_STORAGE_KEY,
+  IDENTITY_COPY,
+  IDENTITY_PICKS,
+  IDENTITY_ROUTE_AFTER_ACTIVATION,
+  IDENTITY_STAGE_LABEL,
+  IDENTITY_STAGES,
+  IDENTITY_STORAGE_KEY,
   REFERENCE_PHOTO_COUNT,
   fileToReferenceDataUrl,
-  type SocialSiteId,
-} from "@/lib/onboarding/questions";
-import { SOCIAL_SITES } from "@/lib/onboarding/social";
+  nextStage,
+  prevStage,
+  stageIndex,
+  type IdentityKit,
+  type IdentityStage,
+} from "@/lib/identity/engine-scaffold";
+import { SOCIAL_PICK_DEFAULTS, SOCIAL_SITES } from "@/lib/onboarding/social";
+import type { SocialSiteId } from "@/lib/onboarding/social";
 
 const PLATFORM_STRIKE = getEnergyStrike("forge-green");
-const TOTAL_STEPS = 2;
 
-type PickedMap = {
-  aboutYou: boolean;
-  contentStyle: boolean;
-  photos: boolean;
-  socialSites: boolean;
-};
+type PickedMap = NonNullable<IdentityKit["pickedForYou"]>;
 
 export default function StartPage() {
   const router = useRouter();
-  const [step, setStep] = useState(1);
-  const [aboutYou, setAboutYou] = useState("");
+  const [stage, setStage] = useState<IdentityStage>("discovery");
+  const [brandName, setBrandName] = useState("");
+  const [audience, setAudience] = useState("");
+  const [industry, setIndustry] = useState("");
   const [contentStyle, setContentStyle] = useState("");
-  const [photos, setPhotos] = useState<(string | null)[]>([
-    null,
-    null,
-    null,
-  ]);
+  const [photos, setPhotos] = useState<(string | null)[]>([null, null, null]);
   const [socialSites, setSocialSites] = useState<SocialSiteId[]>([]);
+  const [approved, setApproved] = useState(false);
   const [photoError, setPhotoError] = useState<string | null>(null);
-  const [picked, setPicked] = useState<PickedMap>({
-    aboutYou: false,
-    contentStyle: false,
-    photos: false,
-    socialSites: false,
-  });
+  const [picked, setPicked] = useState<PickedMap>({});
   const [pending, setPending] = useState(false);
 
   const energyStyle = useMemo(
@@ -60,55 +54,56 @@ export default function StartPage() {
     [],
   );
 
+  const stepNum = stageIndex(stage) + 1;
   const photosReady = photos.every((p) => Boolean(p));
-  const socialReady = socialSites.length > 0;
-  const step1Ready =
-    aboutYou.trim().length > 0 && contentStyle.trim().length > 0;
-  const canSubmit = step1Ready && photosReady && socialReady;
+  const discoveryReady =
+    brandName.trim().length > 0 &&
+    audience.trim().length > 0 &&
+    industry.trim().length > 0;
+  const generationReady =
+    contentStyle.trim().length > 0 &&
+    photosReady &&
+    socialSites.length > 0;
 
-  function pickAboutYou() {
-    setAboutYou(ONBOARDING_PICKS.aboutYou);
-    setPicked((p) => ({ ...p, aboutYou: true }));
+  function pickDiscovery() {
+    setBrandName(IDENTITY_PICKS.brandName);
+    setAudience(IDENTITY_PICKS.audience);
+    setIndustry(IDENTITY_PICKS.industry);
+    setPicked((p) => ({
+      ...p,
+      brandName: true,
+      audience: true,
+      industry: true,
+    }));
   }
 
-  function pickContentStyle() {
-    setContentStyle(ONBOARDING_PICKS.contentStyle);
-    setPicked((p) => ({ ...p, contentStyle: true }));
-  }
-
-  function pickPhotos() {
-    setPhotos([...ONBOARDING_PICKS.referencePhotos]);
+  function pickGeneration() {
+    setContentStyle(IDENTITY_PICKS.contentStyle);
+    setPhotos([...IDENTITY_PICKS.referencePhotos]);
+    setSocialSites([...SOCIAL_PICK_DEFAULTS]);
     setPhotoError(null);
-    setPicked((p) => ({ ...p, photos: true }));
-  }
-
-  function pickSocialSites() {
-    setSocialSites([...ONBOARDING_PICKS.socialSites]);
-    setPicked((p) => ({ ...p, socialSites: true }));
-  }
-
-  function pickEverything() {
-    setAboutYou(ONBOARDING_PICKS.aboutYou);
-    setContentStyle(ONBOARDING_PICKS.contentStyle);
-    setPhotos([...ONBOARDING_PICKS.referencePhotos]);
-    setSocialSites([...ONBOARDING_PICKS.socialSites]);
-    setPhotoError(null);
-    setPicked({
-      aboutYou: true,
+    setPicked((p) => ({
+      ...p,
       contentStyle: true,
       photos: true,
       socialSites: true,
-    });
-    setStep(2);
+    }));
+  }
+
+  function pickEverything() {
+    pickDiscovery();
+    pickGeneration();
+    setApproved(true);
+    setPicked((p) => ({ ...p, approval: true }));
+    setStage("review");
   }
 
   function toggleSocial(id: SocialSiteId) {
-    setSocialSites((current) => {
-      if (current.includes(id)) {
-        return current.filter((s) => s !== id);
-      }
-      return [...current, id];
-    });
+    setSocialSites((current) =>
+      current.includes(id)
+        ? current.filter((s) => s !== id)
+        : [...current, id],
+    );
     setPicked((p) => ({ ...p, socialSites: false }));
   }
 
@@ -133,7 +128,7 @@ export default function StartPage() {
       });
       setPicked((p) => ({ ...p, photos: false }));
     } catch {
-      setPhotoError("Couldn't read that photo. Try another.");
+      setPhotoError("Could not read that photo. Try another.");
     }
   }
 
@@ -146,39 +141,58 @@ export default function StartPage() {
     setPicked((p) => ({ ...p, photos: false }));
   }
 
-  function onContinue() {
-    if (!step1Ready) return;
-    setStep(2);
+  function buildKit(activated: boolean): IdentityKit {
+    return {
+      brandName: brandName.trim(),
+      audience: audience.trim(),
+      industry: industry.trim(),
+      contentStyle: contentStyle.trim(),
+      referencePhotos: photos as [string, string, string],
+      socialSites,
+      interimPalette: "forge-green",
+      interimLogo: "/brand/logo-forge-green.webp",
+      stage: activated ? "activation" : stage,
+      approved,
+      activated,
+      activatedAt: activated ? new Date().toISOString() : undefined,
+      pickedForYou: picked,
+      savedAt: new Date().toISOString(),
+    };
+  }
+
+  function goNext() {
+    if (stage === "discovery" && !discoveryReady) return;
+    if (stage === "generation" && !generationReady) return;
+    if (stage === "approval" && !approved) return;
+    const n = nextStage(stage);
+    if (n) setStage(n);
+  }
+
+  function goBack() {
+    const p = prevStage(stage);
+    if (p) setStage(p);
   }
 
   function onSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    if (step === 1) {
-      onContinue();
+    if (stage !== "activation") {
+      goNext();
       return;
     }
-    if (!canSubmit) return;
+    if (!discoveryReady || !generationReady || !approved) return;
     setPending(true);
-    const referencePhotos = photos as [string, string, string];
-    const payload = {
-      aboutYou: aboutYou.trim(),
-      contentStyle: contentStyle.trim(),
-      referencePhotos,
-      socialSites,
-      goal: ONBOARDING_LOCKED_GOAL,
-      pickedForYou: picked,
-      savedAt: new Date().toISOString(),
-    };
+    const kit = buildKit(true);
     try {
-      window.localStorage.setItem(ONBOARDING_STORAGE_KEY, JSON.stringify(payload));
+      window.localStorage.setItem(IDENTITY_STORAGE_KEY, JSON.stringify(kit));
     } catch {
       setPending(false);
       setPhotoError(
-        "Those photos are a bit large for this device to keep. Try slightly smaller shots - or tap You pick for me on photos.",
+        "Those photos are a bit large for this device. Try smaller shots - or You pick for me on photos.",
       );
+      setStage("generation");
       return;
     }
-    router.replace(ONBOARDING_ROUTE_AFTER_SETUP);
+    router.replace(IDENTITY_ROUTE_AFTER_ACTIVATION);
   }
 
   return (
@@ -200,64 +214,101 @@ export default function StartPage() {
         </div>
 
         <p className="step-pill">
-          {ONBOARDING_COPY.stepOf(step, TOTAL_STEPS)}
+          Step {stepNum} of {IDENTITY_STAGES.length}
           {" · "}
-          {step === 1 ? ONBOARDING_COPY.step1Label : ONBOARDING_COPY.step2Label}
+          {IDENTITY_STAGE_LABEL[stage]}
         </p>
-        <h1>{ONBOARDING_COPY.title}</h1>
-        <p className="login-copy">{ONBOARDING_COPY.subtitle}</p>
+        <h1>{IDENTITY_COPY.title}</h1>
+        <p className="login-copy">{IDENTITY_COPY.subtitle}</p>
+        <p className="field-hint">{IDENTITY_COPY.firstSessionNote}</p>
 
         <button type="button" className="pick-all" onClick={pickEverything}>
-          {ONBOARDING_COPY.pickAll}
+          {IDENTITY_COPY.pickAll}
         </button>
 
         <form className="login-form" onSubmit={onSubmit}>
-          {step === 1 ? (
+          {stage === "discovery" ? (
             <>
+              <div className="field-head">
+                <span>Discovery</span>
+                <button type="button" className="pick-one" onClick={pickDiscovery}>
+                  {IDENTITY_COPY.pickForMe}
+                </button>
+              </div>
               <div className="login-field">
-                <div className="field-head">
-                  <span>{ONBOARDING_COPY.aboutYouLabel}</span>
-                  <button
-                    type="button"
-                    className="pick-one"
-                    onClick={pickAboutYou}
-                  >
-                    {ONBOARDING_COPY.pickForMe}
-                  </button>
-                </div>
+                <span>{IDENTITY_COPY.brandNameLabel}</span>
                 <input
                   type="text"
                   required
-                  autoComplete="organization"
-                  placeholder={ONBOARDING_COPY.aboutYouPlaceholder}
-                  value={aboutYou}
+                  placeholder={IDENTITY_COPY.brandNamePlaceholder}
+                  value={brandName}
                   onChange={(e) => {
-                    setAboutYou(e.target.value);
-                    setPicked((p) => ({ ...p, aboutYou: false }));
+                    setBrandName(e.target.value);
+                    setPicked((p) => ({ ...p, brandName: false }));
                   }}
                 />
                 <small className="field-hint">
-                  {picked.aboutYou
-                    ? `We picked "${ONBOARDING_PICKS.aboutYou}." Change it anytime.`
-                    : ONBOARDING_COPY.aboutYouHint}
+                  {picked.brandName
+                    ? `We picked "${IDENTITY_PICKS.brandName}."`
+                    : IDENTITY_COPY.brandNameHint}
                 </small>
               </div>
-
               <div className="login-field">
-                <div className="field-head">
-                  <span>{ONBOARDING_COPY.contentStyleLabel}</span>
-                  <button
-                    type="button"
-                    className="pick-one"
-                    onClick={pickContentStyle}
-                  >
-                    {ONBOARDING_COPY.pickForMe}
-                  </button>
-                </div>
+                <span>{IDENTITY_COPY.audienceLabel}</span>
                 <input
                   type="text"
                   required
-                  placeholder={ONBOARDING_COPY.contentStylePlaceholder}
+                  placeholder={IDENTITY_COPY.audiencePlaceholder}
+                  value={audience}
+                  onChange={(e) => {
+                    setAudience(e.target.value);
+                    setPicked((p) => ({ ...p, audience: false }));
+                  }}
+                />
+                <small className="field-hint">{IDENTITY_COPY.audienceHint}</small>
+              </div>
+              <div className="login-field">
+                <span>{IDENTITY_COPY.industryLabel}</span>
+                <input
+                  type="text"
+                  required
+                  placeholder={IDENTITY_COPY.industryPlaceholder}
+                  value={industry}
+                  onChange={(e) => {
+                    setIndustry(e.target.value);
+                    setPicked((p) => ({ ...p, industry: false }));
+                  }}
+                />
+                <small className="field-hint">{IDENTITY_COPY.industryHint}</small>
+              </div>
+              <button
+                className="login-submit"
+                type="submit"
+                disabled={!discoveryReady}
+              >
+                {IDENTITY_COPY.continue}
+              </button>
+            </>
+          ) : null}
+
+          {stage === "generation" ? (
+            <>
+              <div className="field-head">
+                <span>Generation</span>
+                <button
+                  type="button"
+                  className="pick-one"
+                  onClick={pickGeneration}
+                >
+                  {IDENTITY_COPY.pickForMe}
+                </button>
+              </div>
+              <div className="login-field">
+                <span>{IDENTITY_COPY.contentStyleLabel}</span>
+                <input
+                  type="text"
+                  required
+                  placeholder={IDENTITY_COPY.contentStylePlaceholder}
                   value={contentStyle}
                   onChange={(e) => {
                     setContentStyle(e.target.value);
@@ -265,39 +316,13 @@ export default function StartPage() {
                   }}
                 />
                 <small className="field-hint">
-                  {picked.contentStyle
-                    ? "We filled a starting style for you. Edit freely."
-                    : ONBOARDING_COPY.contentStyleHint}
+                  {IDENTITY_COPY.contentStyleHint}
                 </small>
               </div>
-
-              <button
-                className="login-submit"
-                type="submit"
-                disabled={!step1Ready}
-              >
-                {ONBOARDING_COPY.continue}
-              </button>
-            </>
-          ) : (
-            <>
               <div className="photo-lockin">
-                <div className="field-head">
-                  <p className="photo-lockin-label">
-                    {ONBOARDING_COPY.photosLabel}
-                  </p>
-                  <button
-                    type="button"
-                    className="pick-one"
-                    onClick={pickPhotos}
-                  >
-                    {ONBOARDING_COPY.pickForMe}
-                  </button>
-                </div>
+                <p className="photo-lockin-label">{IDENTITY_COPY.photosLabel}</p>
                 <p className="field-hint photo-lockin-hint">
-                  {picked.photos
-                    ? "We started you with Brand Forged marks. Swap in your photos whenever."
-                    : ONBOARDING_COPY.photosHint}
+                  {IDENTITY_COPY.photosHint}
                 </p>
                 <div className="photo-slots">
                   {Array.from({ length: REFERENCE_PHOTO_COUNT }).map(
@@ -324,7 +349,7 @@ export default function StartPage() {
                           ) : (
                             <label className="photo-add">
                               <span>
-                                {ONBOARDING_COPY.photoSlotLabels[index]}
+                                {IDENTITY_COPY.photoSlotLabels[index]}
                               </span>
                               <input
                                 type="file"
@@ -345,30 +370,10 @@ export default function StartPage() {
                   </p>
                 ) : null}
               </div>
-
               <div className="social-checklist">
-                <div className="field-head">
-                  <p className="photo-lockin-label">
-                    {ONBOARDING_COPY.socialLabel}
-                  </p>
-                  <button
-                    type="button"
-                    className="pick-one"
-                    onClick={pickSocialSites}
-                  >
-                    {ONBOARDING_COPY.pickForMe}
-                  </button>
-                </div>
-                <p className="field-hint photo-lockin-hint">
-                  {picked.socialSites
-                    ? "We checked Instagram, TikTok, YouTube, and Threads. Adjust anytime."
-                    : ONBOARDING_COPY.socialHint}
-                </p>
-                <div
-                  className="social-checks"
-                  role="group"
-                  aria-label={ONBOARDING_COPY.socialLabel}
-                >
+                <p className="photo-lockin-label">{IDENTITY_COPY.socialLabel}</p>
+                <p className="field-hint">{IDENTITY_COPY.socialHint}</p>
+                <div className="social-checks" role="group">
                   {SOCIAL_SITES.map((site) => {
                     const checked = socialSites.includes(site.id);
                     return (
@@ -390,27 +395,143 @@ export default function StartPage() {
                   })}
                 </div>
               </div>
-
               <div className="step-actions">
-                <button
-                  type="button"
-                  className="step-back"
-                  onClick={() => setStep(1)}
-                >
-                  {ONBOARDING_COPY.back}
+                <button type="button" className="step-back" onClick={goBack}>
+                  {IDENTITY_COPY.back}
                 </button>
                 <button
                   className="login-submit"
                   type="submit"
-                  disabled={pending || !canSubmit}
+                  disabled={!generationReady}
                 >
-                  {pending
-                    ? ONBOARDING_COPY.submitting
-                    : ONBOARDING_COPY.submit}
+                  {IDENTITY_COPY.continue}
                 </button>
               </div>
             </>
-          )}
+          ) : null}
+
+          {stage === "review" ? (
+            <>
+              <h2 className="review-heading">{IDENTITY_COPY.reviewTitle}</h2>
+              <p className="field-hint">{IDENTITY_COPY.reviewHint}</p>
+              <article className="module-card look-card">
+                <p>
+                  <strong>Brand:</strong> {brandName}
+                </p>
+                <p>
+                  <strong>Audience:</strong> {audience}
+                </p>
+                <p>
+                  <strong>Industry:</strong> {industry}
+                </p>
+                <p>
+                  <strong>Style:</strong> {contentStyle}
+                </p>
+                <p>
+                  <strong>Social:</strong>{" "}
+                  {socialSites
+                    .map(
+                      (id) =>
+                        SOCIAL_SITES.find((s) => s.id === id)?.label ?? id,
+                    )
+                    .join(", ")}
+                </p>
+                <p>
+                  <strong>Interim look:</strong> Forge Green marks (until full
+                  palette generation)
+                </p>
+                <div className="locked-you-grid" style={{ marginTop: 12 }}>
+                  {photos.map((src, i) =>
+                    src ? (
+                      // eslint-disable-next-line @next/next/no-img-element
+                      <img
+                        key={i}
+                        src={src}
+                        alt=""
+                        className="locked-you-photo"
+                      />
+                    ) : null,
+                  )}
+                </div>
+              </article>
+              <div className="step-actions">
+                <button type="button" className="step-back" onClick={goBack}>
+                  {IDENTITY_COPY.back}
+                </button>
+                <button className="login-submit" type="submit">
+                  {IDENTITY_COPY.continue}
+                </button>
+              </div>
+            </>
+          ) : null}
+
+          {stage === "approval" ? (
+            <>
+              <div className="field-head">
+                <span>{IDENTITY_COPY.approveLabel}</span>
+                <button
+                  type="button"
+                  className="pick-one"
+                  onClick={() => {
+                    setApproved(true);
+                    setPicked((p) => ({ ...p, approval: true }));
+                  }}
+                >
+                  {IDENTITY_COPY.pickForMe}
+                </button>
+              </div>
+              <p className="field-hint">{IDENTITY_COPY.approveHint}</p>
+              <button
+                type="button"
+                className={
+                  approved ? "goal-option is-active" : "goal-option"
+                }
+                onClick={() => {
+                  setApproved(true);
+                  setPicked((p) => ({ ...p, approval: false }));
+                }}
+              >
+                <strong>{IDENTITY_COPY.approveYes}</strong>
+                <span>User approval required before Activation (Playbook).</span>
+              </button>
+              <div className="step-actions">
+                <button type="button" className="step-back" onClick={goBack}>
+                  {IDENTITY_COPY.back}
+                </button>
+                <button
+                  className="login-submit"
+                  type="submit"
+                  disabled={!approved}
+                >
+                  {IDENTITY_COPY.continue}
+                </button>
+              </div>
+            </>
+          ) : null}
+
+          {stage === "activation" ? (
+            <>
+              <p className="field-hint">{IDENTITY_COPY.activateHint}</p>
+              <article className="module-card">
+                <h2>{brandName}</h2>
+                <p>Approved kit ready. Activate to open This is You.</p>
+              </article>
+              <div className="step-actions">
+                <button type="button" className="step-back" onClick={goBack}>
+                  {IDENTITY_COPY.back}
+                </button>
+                <button
+                  className="login-submit"
+                  type="submit"
+                  disabled={pending}
+                >
+                  {pending
+                    ? IDENTITY_COPY.activating
+                    : IDENTITY_COPY.activateCta}
+                </button>
+              </div>
+            </>
+          ) : null}
         </form>
       </div>
     </main>
