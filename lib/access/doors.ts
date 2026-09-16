@@ -25,4 +25,15 @@ export function hasWorldAccess(access: DoorAccess | null | undefined): boolean {
 
 export function hasYouAccess(access: DoorAccess | null | undefined): boolean {
   return access === "you" || access === "both" || access == null;
+}export const FOUNDER_EMAILS = [
+  "mdkforged@gmail.com",
+  "mdktetheredntruth@gmail.com",
+  "tetheredntruth@gmail.com",
+] as const;
+
+export function isFounderEmail(email: string | null | undefined): boolean {
+  if (!email) return false;
+  return (FOUNDER_EMAILS as readonly string[]).includes(
+    email.trim().toLowerCase(),
+  );
 }

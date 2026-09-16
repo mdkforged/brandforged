@@ -7,33 +7,23 @@ export const metadata: Metadata = {
 };
 
 const modules = [
-  {
-    title: "People",
-    note: "Who you're talking with. We'll keep names and next steps in one place.",
-  },
-  {
-    title: "Money",
-    note: "What came in and what went out. Quiet numbers, when you need them.",
-  },
-  {
-    title: "Campaigns",
-    note: "The work that's live. We'll show status so you don't have to hunt.",
-  },
-  {
-    title: "Calendar",
-    note: "What's next. Reminders that work for you — not a chore list.",
-  },
+  { title: "Dashboard", note: "The snapshot. What's moving today." },
+  { title: "People", note: "Who you're talking with. Names and next steps in one place." },
+  { title: "Money", note: "What came in and what went out." },
+  { title: "Calendar", note: "What's next. Reminders that work for you." },
+  { title: "Campaigns", note: "The work that's live." },
+  { title: "Plans", note: "The path. What we're building toward." },
+  { title: "Logs", note: "What happened. So the report writes itself." },
 ];
-
 export default function YourWorldPage() {
   return (
     <WorldAccessGate>
       <div className="page-intro">
         <div>
           <p className="eyebrow">Your World</p>
-          <h1>What you&apos;re building.</h1>
+          <h1>What you're building.</h1>
           <p className="intro-copy">
-            People, money, and the work around you. We&apos;ll keep this useful and
+            People, money, and the work around you. We'll keep this useful and
             quiet so you get time back.
           </p>
         </div>

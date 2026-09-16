@@ -40,7 +40,7 @@ export default function YouVoicePage() {
           <h2>No kit yet</h2>
           <p>
             {setupDone
-              ? "Your account finished setup, but this device doesn&apos;t have the locked kit yet."
+              ? "Your account finished setup, but this device doesn't have the locked kit yet."
               : (
                 <>
                   Go to <Link href="/start">Get started</Link> so we can lock your

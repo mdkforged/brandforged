@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useState } from "react";
 import {
   hasWorldAccess,
+  isFounderEmail,
   type DoorAccess,
   type ProfileAccess,
   type SolutionFocus,
@@ -60,7 +61,10 @@ export function useProfileAccess() {
         null;
       setDisplayName(name);
       setProfile({
-        door_access: data?.door_access === "both" ? "both" : "you",
+        door_access:
+        isFounderEmail(user.email) || data?.door_access === "both"
+          ? "both"
+          : "you",
         account_kind: (data?.account_kind as ProfileAccess["account_kind"]) ?? null,
         solution_focus:
           (data?.solution_focus as SolutionFocus | null | undefined) ?? null,
@@ -109,7 +113,9 @@ export function useProfileAccess() {
     busy,
     error,
     profile,
-    worldOpen: hasWorldAccess(profile.door_access as DoorAccess),
+    worldOpen:
+      hasWorldAccess(profile.door_access as DoorAccess) ||
+      isFounderEmail(email),
     requested: Boolean(profile.world_upgrade_requested_at),
     wantsAllInOne: profile.solution_focus === "all_in_one",
     onboardingDone: Boolean(profile.onboarding_completed_at),

@@ -49,8 +49,8 @@ export function YouHomeGreeting() {
           <h1>Who you are.</h1>
           <p className="intro-copy">
             {onboardingDone
-              ? "Your account already finished setup on another device. Local brand details aren&apos;t on this phone or browser yet."
-              : "You haven&apos;t set up your brand yet. Hit Get started to name your brand, pick your socials, and unlock your workspace."}
+              ? "Your account already finished setup on another device. Local brand details aren't on this phone or browser yet."
+              : "You haven't set up your brand yet. Hit Get started to name your brand, pick your socials, and unlock your workspace."}
           </p>
           {showGetStarted ? (
             <>

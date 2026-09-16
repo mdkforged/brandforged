@@ -197,7 +197,7 @@ export const IDENTITY_COPY = {
   vaultCta: "Save and open",
   saving: "Saving...",
   pipelineNote:
-    "Pipeline: Brand Input -> Identity Engine -> Photo Transformation -> Palette Enforcement -> Sticker Book -> Export Router -> Brand Vault",
+    "Answer five questions. We set up your look. You pick for me anytime.",
 } as const;
 
 /** Compat alias — prefer generateLockedKit (DR-015). */

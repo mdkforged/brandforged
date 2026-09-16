@@ -338,7 +338,7 @@ function LoginForm() {
                         <strong>All-in-one business</strong>
                         <span>
                           Branding plus the business side - request Your World
-                          when you&apos;re ready.
+                          when you're ready.
                         </span>
                       </button>
                     </div>
