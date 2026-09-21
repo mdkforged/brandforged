@@ -544,7 +544,7 @@ export default function StartPage() {
               <div className="login-field">
                 <span>{IDENTITY_COPY.colorLabel}</span>
                 <div className="social-checks" role="group">
-                  {COLOR_PREF_OPTIONS.map((opt) => (use
+                  {COLOR_PREF_OPTIONS.map((opt) => (
                     <button
                       key={opt.id}
                       type="button"
