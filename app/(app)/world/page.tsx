@@ -21,10 +21,9 @@ export default function YourWorldPage() {
       <div className="page-intro">
         <div>
           <p className="eyebrow">Your World</p>
-          <h1>What you're building.</h1>
+          <h1>{"What you're building."}</h1>
           <p className="intro-copy">
-            People, money, and the work around you. We'll keep this useful and
-            quiet so you get time back.
+            {"People, money, and the work around you. We'll keep this useful and quiet so you get time back."}
           </p>
         </div>
       </div>

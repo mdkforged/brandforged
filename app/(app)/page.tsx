@@ -27,7 +27,7 @@ export default function HomePage() {
       <div className="page-intro">
         <div>
           <p className="eyebrow">Home</p>
-          <h1>You're home.</h1>
+          <h1>{"You're home."}</h1>
           <p className="intro-copy">
             Start with This is You. Your World opens when you upgrade.
           </p>

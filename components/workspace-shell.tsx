@@ -22,7 +22,6 @@ type WorkspaceShellProps = {
 
 export function WorkspaceShell({ children }: WorkspaceShellProps) {
   const pathname = usePathname();
-  const router = useRouter();
   const {
     signedIn,
     ready: authReady,
