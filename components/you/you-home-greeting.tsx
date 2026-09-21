@@ -81,6 +81,11 @@ export function YouHomeGreeting() {
           Your brand workspace is ready. Your voice, your look, your ideas - all in
           one place.
         </p>
+        <p>
+          <Link href="/start?edit=1" className="new-button">
+            Change answers
+          </Link>
+        </p>
         {firstMake ? (
           <p>
             <Link

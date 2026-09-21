@@ -2,12 +2,13 @@
 
 import {
   FormEvent,
+  useEffect,
   useMemo,
   useState,
   type CSSProperties,
   type ChangeEvent,
 } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { getEnergyStrike } from "@/lib/brand/energy-strike";
 import {
   BRAND_INPUT_PICKS,
@@ -72,6 +73,8 @@ type PickedKey =
 
 export default function StartPage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const isEdit = searchParams.get("edit") === "1";
   const [stage, setStage] = useState<OnboardingStage>("brief");
   const [input, setInput] = useState<BrandInputSet>({
     brandName: "",
@@ -91,8 +94,33 @@ export default function StartPage() {
   const [picked, setPicked] = useState<Partial<Record<PickedKey, boolean>>>({});
   const [pending, setPending] = useState(false);
 
-  const kit = useMemo(() => generateLockedKit(input), [input]);
+  useEffect(() => {
+    try {
+      const raw = window.localStorage.getItem(IDENTITY_STORAGE_KEY);
+      if (!raw) return;
+      const parsed = JSON.parse(raw) as Record<string, unknown>;
+      const loaded = parsed.input as BrandInputSet | undefined;
+      if (loaded && typeof loaded.brandName === "string") setInput(loaded);
+      if (Array.isArray(parsed.socialSites)) {
+        setSocialSites(parsed.socialSites as SocialSiteId[]);
+      }
+      if (Array.isArray(parsed.referencePhotos)) {
+        const refs = parsed.referencePhotos as string[];
+        setPhotos([refs[0] || null, refs[1] || null, refs[2] || null]);
+      }
+      if (typeof parsed.firstMake === "string") {
+        setFirstMake(parsed.firstMake as FirstMakeChoice);
+      }
+      if (parsed.approved) setApproved(true);
+      if (parsed.hasExistingLogo) setHasExistingLogo(true);
+      if (typeof parsed.logoUpload === "string") setLogoUpload(parsed.logoUpload);
+      setStage("brief");
+    } catch {
+      /* keep empty form */
+    }
+  }, []);
 
+  const kit = useMemo(() => generateLockedKit(input), [input]);
   const energyStyle = useMemo(
     () =>
       ({
@@ -353,19 +381,7 @@ export default function StartPage() {
             <span>Brand</span> <strong>Forged</strong>
           </p>
         </div>
-
-        <p className="step-pill">
-          Step {stepNum} of {ONBOARDING_STAGES.length}
-          {" - "}
-          {ONBOARDING_STAGE_LABEL[stage]}
-        </p>
-        <h1>{IDENTITY_COPY.title}</h1>
-        <p className="login-copy">{IDENTITY_COPY.subtitle}</p>
-        <p className="field-hint">{IDENTITY_COPY.pipelineNote}</p>
-
-        <button type="button" className="pick-all" onClick={pickEverything}>
-          {IDENTITY_COPY.pickAll}
-        </button>
+ 
 
         <form className="login-form" onSubmit={onSubmit}>
           {stage === "brief" ? (
@@ -528,7 +544,7 @@ export default function StartPage() {
               <div className="login-field">
                 <span>{IDENTITY_COPY.colorLabel}</span>
                 <div className="social-checks" role="group">
-                  {COLOR_PREF_OPTIONS.map((opt) => (
+                  {COLOR_PREF_OPTIONS.map((opt) => (use
                     <button
                       key={opt.id}
                       type="button"
