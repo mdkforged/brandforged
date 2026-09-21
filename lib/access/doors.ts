@@ -25,7 +25,9 @@ export function hasWorldAccess(access: DoorAccess | null | undefined): boolean {
 
 export function hasYouAccess(access: DoorAccess | null | undefined): boolean {
   return access === "you" || access === "both" || access == null;
-}export const FOUNDER_EMAILS = [
+}
+
+export const FOUNDER_EMAILS = [
   "mdkforged@gmail.com",
   "mdktetheredntruth@gmail.com",
   "tetheredntruth@gmail.com",
@@ -36,4 +38,13 @@ export function isFounderEmail(email: string | null | undefined): boolean {
   return (FOUNDER_EMAILS as readonly string[]).includes(
     email.trim().toLowerCase(),
   );
+}
+
+/** Founders always receive both doors so Your World opens. */
+export function doorAccessForUser(
+  email: string | null | undefined,
+  stored: DoorAccess | string | null | undefined,
+): DoorAccess {
+  if (isFounderEmail(email) || stored === "both") return "both";
+  return "you";
 }

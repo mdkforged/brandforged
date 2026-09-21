@@ -532,7 +532,9 @@ a.brand-mark { color: inherit; text-decoration: none; }
 }
 
 .forged-shell .home-door:hover,
-.forged-shell .home-door:focus-visible {
+.forged-shell .home-door:focus-visible,
+.forged-shell .module-card-link:hover,
+.forged-shell .module-card-link:focus-visible {
   outline: 2px solid var(--energy);
   outline-offset: 3px;
 }

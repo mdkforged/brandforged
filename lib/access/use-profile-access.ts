@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useState } from "react";
 import {
+  doorAccessForUser,
   hasWorldAccess,
   isFounderEmail,
   type DoorAccess,
@@ -48,31 +49,38 @@ export function useProfileAccess() {
       }
       setSignedIn(true);
       setEmail(user.email ?? null);
-      const { data } = await supabase
-        .from("profiles")
-        .select(
-          "display_name, door_access, account_kind, solution_focus, world_upgrade_requested_at, onboarding_completed_at",
-        )
-        .eq("id", user.id)
-        .maybeSingle();
-      const name =
-        (typeof data?.display_name === "string" && data.display_name.trim()) ||
-        user.email ||
-        null;
-      setDisplayName(name);
-      setProfile({
-        door_access:
-        isFounderEmail(user.email) || data?.door_access === "both"
-          ? "both"
-          : "you",
-        account_kind: (data?.account_kind as ProfileAccess["account_kind"]) ?? null,
-        solution_focus:
-          (data?.solution_focus as SolutionFocus | null | undefined) ?? null,
-        world_upgrade_requested_at: data?.world_upgrade_requested_at ?? null,
-        onboarding_completed_at: data?.onboarding_completed_at ?? null,
-      });
+      try {
+        const { data } = await supabase
+          .from("profiles")
+          .select(
+            "display_name, door_access, account_kind, solution_focus, world_upgrade_requested_at, onboarding_completed_at",
+          )
+          .eq("id", user.id)
+          .maybeSingle();
+        const name =
+          (typeof data?.display_name === "string" && data.display_name.trim()) ||
+          user.email ||
+          null;
+        setDisplayName(name);
+        setProfile({
+          door_access: doorAccessForUser(user.email, data?.door_access),
+          account_kind:
+            (data?.account_kind as ProfileAccess["account_kind"]) ?? null,
+          solution_focus:
+            (data?.solution_focus as SolutionFocus | null | undefined) ?? null,
+          world_upgrade_requested_at: data?.world_upgrade_requested_at ?? null,
+          onboarding_completed_at: data?.onboarding_completed_at ?? null,
+        });
+      } catch {
+        setDisplayName(user.email || null);
+        setProfile({
+          ...EMPTY,
+          door_access: doorAccessForUser(user.email, null),
+        });
+      }
     } catch {
       setProfile(EMPTY);
+      setSignedIn(false);
       setEmail(null);
       setDisplayName(null);
     } finally {
