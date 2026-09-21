@@ -1,3 +1,4 @@
+import { Suspense } from "react";
 import { Cormorant_Garamond, DM_Sans } from "next/font/google";
 
 const display = Cormorant_Garamond({
@@ -19,7 +20,7 @@ export default function LoginLayout({
 }>) {
   return (
     <div className={`${display.variable} ${sans.variable} login-shell`}>
-      {children}
+      <Suspense fallback={null}>{children}</Suspense>
     </div>
   );
 }
