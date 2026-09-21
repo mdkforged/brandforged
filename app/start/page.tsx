@@ -41,6 +41,7 @@ import {
   labelForSite,
   type SocialSiteId,
 } from "@/lib/onboarding/social";
+import Link from "next/link";
 import {
   IDENTITY_DONE_KEY,
   IDENTITY_UPDATED_EVENT,
@@ -52,6 +53,12 @@ import {
 } from "@/lib/brand/tethered-truth-palette";
 import { createClient } from "@/lib/auth/supabase/client";
 import { isAuthConfigured } from "@/lib/validation/env";
+import {
+  addUploadedSound,
+  loadSoundLibrary,
+  MAX_SOUND_BYTES,
+  readAudioFileAsDataUrl,
+} from "@/lib/sounds/sound-library";
 
 const PLATFORM_STRIKE = getEnergyStrike("forge-green");
 
@@ -91,6 +98,9 @@ export default function StartPage() {
   const [photos, setPhotos] = useState<(string | null)[]>([null, null, null]);
   const [logoUpload, setLogoUpload] = useState<string | null>(null);
   const [photoError, setPhotoError] = useState<string | null>(null);
+  const [needsSignIn, setNeedsSignIn] = useState(false);
+  const [songFile, setSongFile] = useState<File | null>(null);
+  const [songAttested, setSongAttested] = useState(false);
   const [picked, setPicked] = useState<Partial<Record<PickedKey, boolean>>>({});
   const [pending, setPending] = useState(false);
 
@@ -247,22 +257,64 @@ export default function StartPage() {
     setLogoUpload(null);
   }
 
-  function resolveReferencePhotos(): [string, string, string] {
-    const filled = photos.map((p, i) =>
-      p && p.length > 0 ? p : DEFAULT_REFERENCE_PHOTOS[i],
-    ) as [string, string, string];
-    const anyUpload = photos.some((p) => Boolean(p && !p.startsWith("/brand/")));
-    if (anyUpload || photos.every(Boolean)) {
-      return [
-        photos[0] || DEFAULT_REFERENCE_PHOTOS[0],
-        photos[1] || DEFAULT_REFERENCE_PHOTOS[1],
-        photos[2] || DEFAULT_REFERENCE_PHOTOS[2],
-      ];
+  function resolveReferencePhotos(): string[] {
+    // Real uploads only — never pad empty slots with Brand Forged logos.
+    const uploads = photos.filter(
+      (p): p is string =>
+        Boolean(p && p.length > 0 && !p.startsWith("/brand/")),
+    );
+    if (uploads.length > 0) {
+      return uploads;
     }
     if (picked.photos) {
       return [...DEFAULT_REFERENCE_PHOTOS];
     }
-    return filled;
+    return [...DEFAULT_REFERENCE_PHOTOS];
+  }
+
+  function onSongChange(event: ChangeEvent<HTMLInputElement>) {
+    const file = event.target.files?.[0] || null;
+    event.target.value = "";
+    setPhotoError(null);
+    if (!file) {
+      setSongFile(null);
+      return;
+    }
+    if (!file.type.startsWith("audio/")) {
+      setSongFile(null);
+      setPhotoError("Use an audio file (MP3, WAV, M4A, etc.).");
+      return;
+    }
+    if (file.size > MAX_SOUND_BYTES) {
+      setSongFile(null);
+      setPhotoError(
+        `That song is too large (over ${Math.round(MAX_SOUND_BYTES / (1024 * 1024))}MB). Pick a shorter clip under ~6MB.`,
+      );
+      return;
+    }
+    setSongFile(file);
+  }
+
+  function clearSong() {
+    setSongFile(null);
+    setSongAttested(false);
+  }
+
+  function clearDoneFlags() {
+    try {
+      window.localStorage.removeItem(IDENTITY_DONE_KEY);
+      const raw = window.localStorage.getItem(IDENTITY_STORAGE_KEY);
+      if (raw) {
+        const blob = JSON.parse(raw) as Record<string, unknown>;
+        blob.activated = false;
+        blob.vaultSaved = false;
+        delete blob.activatedAt;
+        window.localStorage.setItem(IDENTITY_STORAGE_KEY, JSON.stringify(blob));
+        window.dispatchEvent(new Event(IDENTITY_UPDATED_EVENT));
+      }
+    } catch {
+      /* ignore */
+    }
   }
 
   function goNext() {
@@ -309,7 +361,69 @@ export default function StartPage() {
     }
     if (!ready || !approved || !firstMake || socialSites.length === 0) return;
     setPending(true);
+    setPhotoError(null);
+    setNeedsSignIn(false);
+
+    if (isAuthConfigured()) {
+      try {
+        const supabase = createClient();
+        const {
+          data: { user },
+        } = await supabase.auth.getUser();
+        if (!user) {
+          setPending(false);
+          setNeedsSignIn(true);
+          setPhotoError("Sign in first to finish setup. Your answers stay here until you do.");
+          return;
+        }
+      } catch {
+        setPending(false);
+        setNeedsSignIn(true);
+        setPhotoError("Sign in first to finish setup. Your answers stay here until you do.");
+        return;
+      }
+    }
+
+    if (songFile && !songAttested) {
+      setPending(false);
+      setPhotoError(
+        "Confirm you own this music or have legal permission before finishing.",
+      );
+      return;
+    }
+
+    // Save song first so a failure never marks setup finished.
+    if (songFile && songAttested) {
+      try {
+        const dataUrl = await readAudioFileAsDataUrl(songFile);
+        const result = addUploadedSound(loadSoundLibrary(), {
+          title: songFile.name.replace(/\.[^.]+$/, "") || songFile.name,
+          dataUrl,
+          mimeType: songFile.type || "audio/mpeg",
+          byteSize: songFile.size,
+          attestedAt: new Date().toISOString(),
+        });
+        if (!result.ok) {
+          setPending(false);
+          setPhotoError(result.error);
+          return;
+        }
+      } catch {
+        setPending(false);
+        setPhotoError(
+          "Could not keep that song on this device. Try a smaller file, then save again.",
+        );
+        return;
+      }
+    }
+
     const referencePhotos = resolveReferencePhotos();
+    const pickedForYou = {
+      ...picked,
+      photos: referencePhotos.some((p) => !p.startsWith("/brand/"))
+        ? false
+        : picked.photos,
+    };
     const now = new Date().toISOString();
     const payload = {
       input,
@@ -318,7 +432,7 @@ export default function StartPage() {
       approved: true,
       vaultSaved: true,
       firstMake,
-      pickedForYou: picked,
+      pickedForYou,
       hasExistingLogo,
       logoUpload: logoUpload || undefined,
       aboutYou: input.brandName,
@@ -335,9 +449,10 @@ export default function StartPage() {
     const ok = persistIdentity(payload);
     if (!ok) {
       setPending(false);
-      setPhotoError("Could not save on this device. Try again without large photo uploads.");
+      // persistIdentity already set the on-page error; stay on /start.
       return;
     }
+
     if (isAuthConfigured()) {
       try {
         const supabase = createClient();
@@ -484,7 +599,6 @@ export default function StartPage() {
                               <input
                                 type="file"
                                 accept="image/*"
-                                capture="environment"
                                 onChange={(e) => onPhotoChange(index, e)}
                               />
                             </label>
@@ -493,6 +607,44 @@ export default function StartPage() {
                       );
                     })}
                   </div>
+                </div>
+
+                <div className="photo-lockin" style={{ marginTop: 12 }}>
+                  <p className="photo-lockin-label">Your song (optional)</p>
+                  <p className="field-hint">
+                    Add one track you own. It shows in the sound drawer on This is You after you finish.
+                  </p>
+                  {songFile ? (
+                    <div className="photo-slot" style={{ maxWidth: "100%", minHeight: 72 }}>
+                      <p className="field-hint" style={{ margin: 0 }}>
+                        {songFile.name}
+                      </p>
+                      <label className="social-chip" style={{ display: "inline-flex", gap: 8, alignItems: "center", cursor: "pointer", marginTop: 8 }}>
+                        <input
+                          type="checkbox"
+                          checked={songAttested}
+                          onChange={(e) => setSongAttested(e.target.checked)}
+                        />
+                        <span>I own this music, or I have legal permission to use it in Brand Forged.</span>
+                      </label>
+                      <button
+                        type="button"
+                        className="photo-clear"
+                        onClick={clearSong}
+                      >
+                        Remove
+                      </button>
+                    </div>
+                  ) : (
+                    <label className="photo-add" style={{ minHeight: 72 }}>
+                      <span>Upload song</span>
+                      <input
+                        type="file"
+                        accept="audio/*"
+                        onChange={onSongChange}
+                      />
+                    </label>
+                  )}
                 </div>
 
                 <div className="photo-lockin" style={{ marginTop: 12 }}>
@@ -719,6 +871,11 @@ export default function StartPage() {
               {photoError ? (
                 <p className="login-alert" role="alert">
                   {photoError}
+                </p>
+              ) : null}
+              {needsSignIn ? (
+                <p className="field-hint">
+                  <Link href="/login?next=/start">Sign in</Link> to finish. Setup is not done until you are signed in.
                 </p>
               ) : null}
 

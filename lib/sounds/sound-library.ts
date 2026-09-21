@@ -104,15 +104,16 @@ export function loadSoundLibrary(): SoundLibraryState {
   }
 }
 
-export function saveSoundLibrary(state: SoundLibraryState): void {
-  if (typeof window === "undefined") return;
+export function saveSoundLibrary(state: SoundLibraryState): boolean {
+  if (typeof window === "undefined") return false;
   try {
     window.localStorage.setItem(
       SOUND_LIBRARY_STORAGE_KEY,
       JSON.stringify(state),
     );
+    return true;
   } catch {
-    /* ignore quota */
+    return false;
   }
 }
 
@@ -171,7 +172,13 @@ export function addUploadedSound(
     sounds: [sound, ...state.sounds],
     selectedId: sound.id,
   };
-  saveSoundLibrary(next);
+  if (!saveSoundLibrary(next)) {
+    return {
+      ok: false,
+      error:
+        "Could not keep that song on this device. Try a smaller file, then save again.",
+    };
+  }
   return { ok: true, state: next, sound };
 }
 
