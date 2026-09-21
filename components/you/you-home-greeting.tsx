@@ -82,7 +82,7 @@ export function YouHomeGreeting() {
           one place.
         </p>
         <p>
-          <Link href="/start?edit=1" className="new-button">
+          <Link href="/start?edit=1" className="pick-one">
             Change answers
           </Link>
         </p>

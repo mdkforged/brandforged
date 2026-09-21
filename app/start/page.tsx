@@ -287,22 +287,12 @@ export default function StartPage() {
       write(payload);
       return true;
     } catch {
-      // QuotaExceeded from fat photo data URLs — still activate without them.
-      const slim = {
-        ...payload,
-        referencePhotos: [...DEFAULT_REFERENCE_PHOTOS],
-        logoUpload: undefined,
-        photosDeferred: true,
-      };
-      try {
-        write(slim);
-        setPhotoError(
-          "Photos were too large to keep on this device. Brand setup still saved — add smaller photos anytime from This is You.",
-        );
-        return true;
-      } catch {
-        return false;
-      }
+      // QuotaExceeded from fat photo data URLs - keep user on /start to retry.
+      // Never swap real uploads for Brand Forged logo placeholders.
+      setPhotoError(
+        "Photos were too large to keep on this device. Try smaller photos or fewer uploads, then save again.",
+      );
+      return false;
     }
   }
 
