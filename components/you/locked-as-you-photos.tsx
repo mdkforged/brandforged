@@ -10,7 +10,9 @@ import { fileToReferenceDataUrl } from "@/lib/onboarding/questions";
 
 export function LockedAsYouPhotos() {
   const answers = useOnboardingAnswers();
-  const inputRef = useRef<HTMLInputElement>(null);
+  const addInputRef = useRef<HTMLInputElement>(null);
+  const replaceInputRef = useRef<HTMLInputElement>(null);
+  const [replaceIndex, setReplaceIndex] = useState<number | null>(null);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -25,8 +27,19 @@ export function LockedAsYouPhotos() {
     photos.length === 0 ||
     Boolean(answers?.pickedForYou?.photos) ||
     photos.every(isPlaceholderPhoto);
-  const lookPhotos = photos.slice(0, Math.max(photos.length, 0));
-  const socialPhotos = lookPhotos;
+  const lookPhotos = placeholders
+    ? []
+    : photos.filter((p) => !isPlaceholderPhoto(p));
+
+  async function persistPhotos(next: string[]): Promise<boolean> {
+    const ok = updateReferencePhotos(next, { clearPickedPhotos: true });
+    if (!ok) {
+      setError(
+        "Could not save photos on this device. Try a smaller photo, then try again.",
+      );
+    }
+    return ok;
+  }
 
   async function onAddPhotos(event: ChangeEvent<HTMLInputElement>) {
     const files = event.target.files;
@@ -44,9 +57,9 @@ export function LockedAsYouPhotos() {
         additions.push(await fileToReferenceDataUrl(file));
       }
       if (additions.length === 0) return;
-      const base = placeholders ? [] : photos;
+      const base = lookPhotos;
       const next = [...base, ...additions];
-      updateReferencePhotos(next, { clearPickedPhotos: true });
+      await persistPhotos(next);
     } catch {
       setError("Could not read one of those photos. Try again.");
     } finally {
@@ -54,23 +67,58 @@ export function LockedAsYouPhotos() {
     }
   }
 
-  if (photos.length === 0) {
+  async function onReplacePhoto(event: ChangeEvent<HTMLInputElement>) {
+    const file = event.target.files?.[0];
+    event.target.value = "";
+    const index = replaceIndex;
+    setReplaceIndex(null);
+    if (!file || index === null) return;
+    if (!file.type.startsWith("image/")) {
+      setError("Use a photo file (JPG, PNG, etc.).");
+      return;
+    }
+    setBusy(true);
+    setError(null);
+    try {
+      const dataUrl = await fileToReferenceDataUrl(file);
+      const next = [...lookPhotos];
+      if (index >= 0 && index < next.length) {
+        next[index] = dataUrl;
+      } else {
+        next.push(dataUrl);
+      }
+      await persistPhotos(next);
+    } catch {
+      setError("Could not read that photo. Try again.");
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  function startReplace(index: number) {
+    setReplaceIndex(index);
+    replaceInputRef.current?.click();
+  }
+
+  if (lookPhotos.length === 0) {
     return (
       <div className="locked-you">
         <p className="locked-you-copy">
-          Placeholder marks for now — upload your photos to lock your look.
+          {placeholders
+            ? "Upload your photos to lock your look. Brand marks are only stand-ins until you do."
+            : "No look photos yet. Add one to get started."}
         </p>
         <div className="locked-you-actions">
           <button
             type="button"
             className="locked-you-add"
             disabled={busy}
-            onClick={() => inputRef.current?.click()}
+            onClick={() => addInputRef.current?.click()}
           >
             + Add photo
           </button>
           <input
-            ref={inputRef}
+            ref={addInputRef}
             type="file"
             accept="image/*"
             multiple
@@ -90,49 +138,36 @@ export function LockedAsYouPhotos() {
   return (
     <div className="locked-you">
       <p className="locked-you-copy">
-        {placeholders
-          ? "Placeholder marks for now — upload your photos to lock your look."
-          : brandName
-            ? `Locked in as ${brandName}.`
-            : "Locked in as you."}
+        {brandName ? `Locked in as ${brandName}.` : "Locked in as you."} Tap a
+        photo to replace it. Add more anytime.
       </p>
 
       <div className="locked-you-group">
         <p className="locked-you-group-label">Look</p>
         <div className="locked-you-grid">
           {lookPhotos.map((src, index) => (
-            // eslint-disable-next-line @next/next/no-img-element
-            <img
+            <button
               key={`look-${index}`}
-              src={src}
-              alt={placeholders ? `Placeholder mark ${index + 1}` : `Look ${index + 1}`}
-              className="locked-you-photo"
-            />
-          ))}
-        </div>
-      </div>
-
-      <div className="locked-you-group">
-        <p className="locked-you-group-label">Social set</p>
-        <div className="locked-you-grid">
-          {socialPhotos.map((src, index) => (
-            // eslint-disable-next-line @next/next/no-img-element
-            <img
-              key={`social-${index}`}
-              src={src}
-              alt={
-                placeholders
-                  ? `Social placeholder ${index + 1}`
-                  : `Social photo ${index + 1}`
-              }
-              className="locked-you-photo"
-            />
+              type="button"
+              className="locked-you-photo-btn"
+              disabled={busy}
+              onClick={() => startReplace(index)}
+              aria-label={`Replace look photo ${index + 1}`}
+            >
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src={src}
+                alt={`Look ${index + 1}`}
+                className="locked-you-photo"
+              />
+              <span className="locked-you-replace-hint">Replace</span>
+            </button>
           ))}
           <button
             type="button"
             className="locked-you-add-tile"
             disabled={busy}
-            onClick={() => inputRef.current?.click()}
+            onClick={() => addInputRef.current?.click()}
             aria-label="Add photo"
           >
             <span>+</span>
@@ -142,12 +177,19 @@ export function LockedAsYouPhotos() {
       </div>
 
       <input
-        ref={inputRef}
+        ref={addInputRef}
         type="file"
         accept="image/*"
         multiple
         className="locked-you-file"
         onChange={onAddPhotos}
+      />
+      <input
+        ref={replaceInputRef}
+        type="file"
+        accept="image/*"
+        className="locked-you-file"
+        onChange={onReplacePhoto}
       />
       {error ? (
         <p className="locked-you-error" role="alert">

@@ -306,8 +306,9 @@ export function reachPacksForSites(siteIds: SocialSiteId[]): Array<
 export const PLATFORM_OPEN_URL: Record<SocialSiteId, string> = {
   instagram: "https://www.instagram.com/",
   tiktok: "https://www.tiktok.com/upload",
-  youtube: "https://studio.youtube.com/",
-  threads: "https://www.threads.net/",
+  /** Studio upload surface — not a blank youtube.com home. */
+  youtube: "https://studio.youtube.com/channel/upload",
+  threads: "https://www.threads.net/intent/post",
   x: "https://x.com/compose/post",
   facebook: "https://www.facebook.com/",
   linkedin: "https://www.linkedin.com/feed/",

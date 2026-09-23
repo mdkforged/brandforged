@@ -253,8 +253,8 @@ function notifyIdentityUpdated() {
 export function updateReferencePhotos(
   photos: string[],
   options?: { clearPickedPhotos?: boolean },
-): void {
-  if (typeof window === "undefined") return;
+): boolean {
+  if (typeof window === "undefined") return false;
   const cleaned = photos.filter((p) => typeof p === "string" && p.length > 0);
   let raw: string | null = null;
   try {
@@ -262,7 +262,7 @@ export function updateReferencePhotos(
       window.localStorage.getItem(IDENTITY_STORAGE_KEY) ||
       window.localStorage.getItem(LEGACY_ONBOARDING_STORAGE_KEY);
   } catch {
-    return;
+    return false;
   }
   let blob: Record<string, unknown> = {};
   if (raw) {
@@ -285,7 +285,8 @@ export function updateReferencePhotos(
   try {
     window.localStorage.setItem(IDENTITY_STORAGE_KEY, JSON.stringify(blob));
   } catch {
-    return;
+    return false;
   }
   notifyIdentityUpdated();
+  return true;
 }
