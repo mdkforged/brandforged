@@ -17,7 +17,7 @@ import {
   type SocialSiteId,
 } from "@/lib/onboarding/social";
 import { PLATFORM_OPEN_URL } from "@/lib/onboarding/reach-packs";
-import { localOnBrandCaption } from "@/lib/you/make-caption";
+import { requestAiCaption } from "@/lib/you/make-caption";
 import {
   isTetheredTruthBrand,
   TETHERED_TRUTH_KIT_TOKENS,
@@ -33,7 +33,7 @@ const MAKE_DESTINATIONS: SocialSiteId[] = [
 type MakeResult = {
   caption: string;
   photoSrc: string;
-  source: "local";
+  source: "ai" | "local";
 };
 
 export function MakeThisPost() {
@@ -119,7 +119,7 @@ export function MakeThisPost() {
     }
   }
 
-  function onMake() {
+  async function onMake() {
     setError(null);
     setCopied(false);
     const photo = selectedPhoto;
@@ -132,15 +132,21 @@ export function MakeThisPost() {
       setError("Add one sentence about what this post is.");
       return;
     }
-    // Local kit voice only for now (no Grok/API route in this app yet).
-    const caption = localOnBrandCaption({
-      brandName,
-      oneLiner: line,
-      voiceLabel: kit?.voiceLabel,
-      voiceTone: tokens?.voiceTone,
-      moodTags: tokens?.moodTags,
-    });
-    setResult({ caption, photoSrc: photo, source: "local" });
+    setBusy(true);
+    try {
+      const { caption, source } = await requestAiCaption({
+        brandName,
+        oneLiner: line,
+        voiceLabel: kit?.voiceLabel,
+        voiceTone: tokens?.voiceTone,
+        moodTags: tokens?.moodTags,
+      });
+      setResult({ caption, photoSrc: photo, source });
+    } catch {
+      setError("Could not make the caption. Try again.");
+    } finally {
+      setBusy(false);
+    }
   }
 
   async function copyCaption() {
@@ -253,9 +259,9 @@ export function MakeThisPost() {
         type="button"
         className="door-upgrade-btn make-this-go"
         disabled={busy}
-        onClick={onMake}
+        onClick={() => void onMake()}
       >
-        Make this
+        {busy ? "Making…" : "Make this"}
       </button>
 
       {error ? (
@@ -266,7 +272,11 @@ export function MakeThisPost() {
 
       {result ? (
         <div className="make-this-result">
-          <p className="make-this-result-label">Ready to copy — not posted</p>
+          <p className="make-this-result-label">{
+            result.source === "ai"
+              ? "Ready to copy — not posted"
+              : "Ready to copy — not posted (local voice)"
+          }</p>
           <div className="make-this-preview">
             <div className="make-this-frame">
               {/* eslint-disable-next-line @next/next/no-img-element */}
