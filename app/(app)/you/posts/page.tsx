@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useCallback, useEffect, useMemo, useState, type CSSProperties } from "react";
+import { useCallback, useMemo, useState, type CSSProperties } from "react";
 import { useProfileAccess } from "@/lib/access/use-profile-access";
 import {
   hasFinishedStart,
@@ -113,15 +113,11 @@ export default function QuickSocialPostsPage() {
   const packs = useMemo(() => reachPacksForSites(sites), [sites]);
 
   const [needText, setNeedText] = useState("");
-  const [needs, setNeeds] = useState<SocialNeedCard[]>([]);
+  const [needs, setNeeds] = useState<SocialNeedCard[]>(() => loadSocialNeeds());
   const [copiedKey, setCopiedKey] = useState<string | null>(null);
   const [selectedKey, setSelectedKey] = useState<string | null>(null);
   const [previewPhotoIndex, setPreviewPhotoIndex] = useState(0);
   const [selectedSound, setSelectedSound] = useState<LibrarySound | null>(null);
-
-  useEffect(() => {
-    setNeeds(loadSocialNeeds());
-  }, []);
 
   const persistNeeds = useCallback((next: SocialNeedCard[]) => {
     setNeeds(next);

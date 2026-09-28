@@ -1,23 +1,23 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 
 const NOTES_KEY = "bf-you-notes-v1";
 
-export default function YouNotesPage() {
-  const [notes, setNotes] = useState("");
-  const [ready, setReady] = useState(false);
-  const [saved, setSaved] = useState(false);
+function loadNotes(): string {
+  if (typeof window === "undefined") return "";
+  try {
+    return window.localStorage.getItem(NOTES_KEY) || "";
+  } catch {
+    return "";
+  }
+}
 
-  useEffect(() => {
-    try {
-      setNotes(window.localStorage.getItem(NOTES_KEY) || "");
-    } catch {
-      setNotes("");
-    }
-    setReady(true);
-  }, []);
+export default function YouNotesPage() {
+  const [notes, setNotes] = useState(loadNotes);
+  const ready = true;
+  const [saved, setSaved] = useState(false);
 
   function persist(value: string) {
     setNotes(value);

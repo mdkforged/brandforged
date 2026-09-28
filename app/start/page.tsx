@@ -2,7 +2,6 @@
 
 import {
   FormEvent,
-  useEffect,
   useMemo,
   useState,
   type CSSProperties,
@@ -78,57 +77,105 @@ type PickedKey =
   | "socialSites"
   | "photos";
 
+
+const EMPTY_INPUT: BrandInputSet = {
+  brandName: "",
+  industry: "",
+  audience: "",
+  moodWords: "",
+  logoStyle: "combo",
+  colorPreference: "",
+};
+
+type StartHydration = {
+  input: BrandInputSet;
+  socialSites: SocialSiteId[];
+  photos: (string | null)[];
+  firstMake: FirstMakeChoice;
+  approved: boolean;
+  hasExistingLogo: boolean;
+  logoUpload: string | null;
+};
+
+function loadStartHydration(): StartHydration {
+  const empty: StartHydration = {
+    input: { ...EMPTY_INPUT },
+    socialSites: [],
+    photos: [null, null, null],
+    firstMake: FIRST_MAKE_DEFAULT,
+    approved: false,
+    hasExistingLogo: false,
+    logoUpload: null,
+  };
+  if (typeof window === "undefined") return empty;
+  try {
+    const raw = window.localStorage.getItem(IDENTITY_STORAGE_KEY);
+    if (!raw) return empty;
+    const parsed = JSON.parse(raw) as Record<string, unknown>;
+    const loaded = parsed.input as BrandInputSet | undefined;
+    const input =
+      loaded && typeof loaded.brandName === "string"
+        ? loaded
+        : { ...EMPTY_INPUT };
+    const socialSites = Array.isArray(parsed.socialSites)
+      ? (parsed.socialSites as SocialSiteId[])
+      : [];
+    let photos: (string | null)[] = [null, null, null];
+    if (Array.isArray(parsed.referencePhotos)) {
+      const refs = parsed.referencePhotos as string[];
+      photos = [refs[0] || null, refs[1] || null, refs[2] || null];
+    }
+    const firstMake =
+      typeof parsed.firstMake === "string"
+        ? (parsed.firstMake as FirstMakeChoice)
+        : FIRST_MAKE_DEFAULT;
+    const approved = Boolean(parsed.approved);
+    const hasExistingLogo = Boolean(parsed.hasExistingLogo);
+    const logoUpload =
+      typeof parsed.logoUpload === "string" ? parsed.logoUpload : null;
+    return {
+      input,
+      socialSites,
+      photos,
+      firstMake,
+      approved,
+      hasExistingLogo,
+      logoUpload,
+    };
+  } catch {
+    return empty;
+  }
+}
+
 export default function StartPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const isEdit = searchParams.get("edit") === "1";
   const [stage, setStage] = useState<OnboardingStage>("brief");
-  const [input, setInput] = useState<BrandInputSet>({
-    brandName: "",
-    industry: "",
-    audience: "",
-    moodWords: "",
-    logoStyle: "combo",
-    colorPreference: "",
-  });
-  const [approved, setApproved] = useState(false);
-  const [firstMake, setFirstMake] = useState<FirstMakeChoice>(FIRST_MAKE_DEFAULT);
-  const [socialSites, setSocialSites] = useState<SocialSiteId[]>([]);
-  const [hasExistingLogo, setHasExistingLogo] = useState(false);
-  const [photos, setPhotos] = useState<(string | null)[]>([null, null, null]);
-  const [logoUpload, setLogoUpload] = useState<string | null>(null);
+  const [hydrated] = useState(loadStartHydration);
+  const [input, setInput] = useState<BrandInputSet>(() => hydrated.input);
+  const [approved, setApproved] = useState(() => hydrated.approved);
+  const [firstMake, setFirstMake] = useState<FirstMakeChoice>(
+    () => hydrated.firstMake,
+  );
+  const [socialSites, setSocialSites] = useState<SocialSiteId[]>(
+    () => hydrated.socialSites,
+  );
+  const [hasExistingLogo, setHasExistingLogo] = useState(
+    () => hydrated.hasExistingLogo,
+  );
+  const [photos, setPhotos] = useState<(string | null)[]>(
+    () => hydrated.photos,
+  );
+  const [logoUpload, setLogoUpload] = useState<string | null>(
+    () => hydrated.logoUpload,
+  );
   const [photoError, setPhotoError] = useState<string | null>(null);
   const [needsSignIn, setNeedsSignIn] = useState(false);
   const [songFile, setSongFile] = useState<File | null>(null);
   const [songAttested, setSongAttested] = useState(false);
   const [picked, setPicked] = useState<Partial<Record<PickedKey, boolean>>>({});
   const [pending, setPending] = useState(false);
-
-  useEffect(() => {
-    try {
-      const raw = window.localStorage.getItem(IDENTITY_STORAGE_KEY);
-      if (!raw) return;
-      const parsed = JSON.parse(raw) as Record<string, unknown>;
-      const loaded = parsed.input as BrandInputSet | undefined;
-      if (loaded && typeof loaded.brandName === "string") setInput(loaded);
-      if (Array.isArray(parsed.socialSites)) {
-        setSocialSites(parsed.socialSites as SocialSiteId[]);
-      }
-      if (Array.isArray(parsed.referencePhotos)) {
-        const refs = parsed.referencePhotos as string[];
-        setPhotos([refs[0] || null, refs[1] || null, refs[2] || null]);
-      }
-      if (typeof parsed.firstMake === "string") {
-        setFirstMake(parsed.firstMake as FirstMakeChoice);
-      }
-      if (parsed.approved) setApproved(true);
-      if (parsed.hasExistingLogo) setHasExistingLogo(true);
-      if (typeof parsed.logoUpload === "string") setLogoUpload(parsed.logoUpload);
-      setStage("brief");
-    } catch {
-      /* keep empty form */
-    }
-  }, []);
 
   const kit = useMemo(() => generateLockedKit(input), [input]);
   const energyStyle = useMemo(
