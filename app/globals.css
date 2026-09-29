@@ -1628,3 +1628,28 @@ a.brand-mark { color: inherit; text-decoration: none; }
   color: #fff;
   background: linear-gradient(transparent, rgba(0,0,0,0.65));
 }
+
+.make-this-result-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  margin-bottom: 0.35rem;
+}
+.make-this-result-head .make-this-result-label {
+  margin: 0;
+}
+.make-this-source {
+  flex-shrink: 0;
+  font-size: 0.7rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  padding: 0.2rem 0.5rem;
+  border-radius: 999px;
+  border: 1px solid color-mix(in srgb, var(--make-accent, #8a8179) 55%, transparent);
+  color: var(--make-accent, #8a8179);
+}
+.make-this-source.is-ai {
+  border-color: color-mix(in srgb, var(--make-primary, #ad885d) 70%, transparent);
+  color: var(--make-primary, #ad885d);
+}

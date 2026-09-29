@@ -272,11 +272,23 @@ export function MakeThisPost() {
 
       {result ? (
         <div className="make-this-result">
-          <p className="make-this-result-label">{
-            result.source === "ai"
-              ? "Ready to copy — not posted"
-              : "Ready to copy — not posted (local voice)"
-          }</p>
+          <div className="make-this-result-head">
+            <p className="make-this-result-label">Ready to copy - not posted</p>
+            <span
+              className={
+                result.source === "ai"
+                  ? "make-this-source is-ai"
+                  : "make-this-source is-local"
+              }
+              title={
+                result.source === "ai"
+                  ? "Caption from Grok"
+                  : "Caption from local voice (AI unavailable)"
+              }
+            >
+              {result.source === "ai" ? "AI" : "Local"}
+            </span>
+          </div>
           <div className="make-this-preview">
             <div className="make-this-frame">
               {/* eslint-disable-next-line @next/next/no-img-element */}
