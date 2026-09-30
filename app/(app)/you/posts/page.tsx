@@ -341,6 +341,53 @@ export default function QuickSocialPostsPage() {
             />
           </div>
 
+          {selectedPack ? (
+            // Copy / Open live BELOW the phone frame, never on its face.
+            <div className="post-phone-actions">
+              <button
+                type="button"
+                className="door-upgrade-btn"
+                style={{
+                  borderColor: primaryHex,
+                  background: `${primaryHex}29`,
+                  color: accentHex,
+                }}
+                onClick={() =>
+                  void copyText(
+                    `preview-${selectedKey}`,
+                    fillBrandCaption(selectedPack.caption, brandName),
+                  )
+                }
+              >
+                {copiedKey === `preview-${selectedKey}`
+                  ? "Copied"
+                  : copiedKey === `fail-preview-${selectedKey}`
+                    ? "Could not auto-copy"
+                    : "Copy caption"}
+              </button>
+              <button
+                type="button"
+                className="door-upgrade-btn door-upgrade-btn-ghost"
+                style={{ borderColor: `${primaryHex}66`, color: textHex }}
+                onClick={() => openPlatform(selectedPack.siteId)}
+              >
+                Open {labelForSite(selectedPack.siteId)}
+              </button>
+              {copiedKey === `fail-preview-${selectedKey}` ? (
+                <label className="copy-fallback">
+                  <span className="sr-only">Select and copy</span>
+                  <textarea
+                    className="copy-fallback-text"
+                    readOnly
+                    value={fillBrandCaption(selectedPack.caption, brandName)}
+                    onFocus={(event) => event.currentTarget.select()}
+                    rows={5}
+                  />
+                </label>
+              ) : null}
+            </div>
+          ) : null}
+
           {lookPhotos.length > 1 ? (
             <div className="post-photo-picks" role="list" aria-label="Look photos">
               {lookPhotos.map((src, index) => (

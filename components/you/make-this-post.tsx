@@ -18,9 +18,12 @@ import {
 } from "@/lib/onboarding/social";
 import { PLATFORM_OPEN_URL } from "@/lib/onboarding/reach-packs";
 import { requestAiCaption } from "@/lib/you/make-caption";
+import { classifyBrief, type PaletteSwatch } from "@/lib/you/make-order";
+import { downloadNameForImage, requestImageEdit } from "@/lib/you/make-image";
 import {
   isTetheredTruthBrand,
   TETHERED_TRUTH_KIT_TOKENS,
+  TETHERED_TRUTH_SWATCHES,
 } from "@/lib/brand/tethered-truth-palette";
 
 const MAKE_DESTINATIONS: SocialSiteId[] = [
@@ -34,6 +37,8 @@ type MakeResult = {
   caption: string;
   photoSrc: string;
   source: "ai" | "local";
+  /** "edit" = new image returned by the image edit API from the selected photo. */
+  imageKind: "original" | "edit";
 };
 
 export function MakeThisPost() {
@@ -43,6 +48,7 @@ export function MakeThisPost() {
   const [uploadSrc, setUploadSrc] = useState<string | null>(null);
   const [oneLiner, setOneLiner] = useState("");
   const [busy, setBusy] = useState(false);
+  const [busyLabel, setBusyLabel] = useState("Making...");
   const [error, setError] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
   const [result, setResult] = useState<MakeResult | null>(null);
@@ -132,16 +138,47 @@ export function MakeThisPost() {
       setError("Add one sentence about what this post is.");
       return;
     }
+    const kind = classifyBrief(line);
+    const captionInput = {
+      brandName,
+      oneLiner: line,
+      voiceLabel: kit?.voiceLabel,
+      voiceTone: tokens?.voiceTone,
+      moodTags: tokens?.moodTags,
+    };
+    setBusyLabel(kind === "visual" ? "Editing image..." : "Making...");
     setBusy(true);
+    setResult(null);
     try {
-      const { caption, source } = await requestAiCaption({
-        brandName,
-        oneLiner: line,
-        voiceLabel: kit?.voiceLabel,
-        voiceTone: tokens?.voiceTone,
-        moodTags: tokens?.moodTags,
-      });
-      setResult({ caption, photoSrc: photo, source });
+      if (kind === "visual") {
+        // The brief is an order about the selected photo: edit the image.
+        const palette: PaletteSwatch[] = isTetheredTruthBrand(brandForPalette)
+          ? TETHERED_TRUTH_SWATCHES.map((s) => ({ name: s.name, hex: s.hex }))
+          : [
+              { name: "Primary", hex: primaryHex },
+              { name: "Background", hex: backgroundHex },
+              { name: "Accent", hex: accentHex },
+              { name: "Text", hex: textHex },
+            ];
+        const [edit, cap] = await Promise.all([
+          requestImageEdit({ order: line, photoSrc: photo, brandName, palette }),
+          requestAiCaption(captionInput),
+        ]);
+        if (!edit.ok) {
+          // Never show the original photo as if it were the result.
+          setError(edit.message);
+          return;
+        }
+        setResult({
+          caption: cap.caption,
+          photoSrc: edit.image,
+          source: cap.source,
+          imageKind: "edit",
+        });
+        return;
+      }
+      const { caption, source } = await requestAiCaption(captionInput);
+      setResult({ caption, photoSrc: photo, source, imageKind: "original" });
     } catch {
       setError("Could not make the caption. Try again.");
     } finally {
@@ -191,7 +228,8 @@ export function MakeThisPost() {
       <h2>Make this</h2>
       <p className="make-this-hint">
         Pick one Look photo, say what the post is in one sentence, then Make
-        this. Caption stays on this page — nothing is posted for you.
+        this. Give an order like &quot;Make into album art - title: Moment To
+        Rise&quot; to edit the photo. Nothing is posted for you.
       </p>
 
       <div className="make-this-photos" role="listbox" aria-label="Look photo">
@@ -261,7 +299,7 @@ export function MakeThisPost() {
         disabled={busy}
         onClick={() => void onMake()}
       >
-        {busy ? "Making…" : "Make this"}
+        {busy ? busyLabel : "Make this"}
       </button>
 
       {error ? (
@@ -274,25 +312,42 @@ export function MakeThisPost() {
         <div className="make-this-result">
           <div className="make-this-result-head">
             <p className="make-this-result-label">Ready to copy - not posted</p>
-            <span
-              className={
-                result.source === "ai"
-                  ? "make-this-source is-ai"
-                  : "make-this-source is-local"
-              }
-              title={
-                result.source === "ai"
-                  ? "Caption from Grok"
-                  : "Caption from local voice (AI unavailable)"
-              }
-            >
-              {result.source === "ai" ? "AI" : "Local"}
+            <span className="make-this-badges">
+              {result.imageKind === "edit" ? (
+                <span
+                  className="make-this-image-source"
+                  title="New image from the image edit API, made from your selected Look photo"
+                >
+                  Edited from your Look photo
+                </span>
+              ) : null}
+              <span
+                className={
+                  result.source === "ai"
+                    ? "make-this-source is-ai"
+                    : "make-this-source is-local"
+                }
+                title={
+                  result.source === "ai"
+                    ? "Caption from Grok"
+                    : "Caption from local voice (AI unavailable)"
+                }
+              >
+                {result.source === "ai" ? "AI" : "Local"}
+              </span>
             </span>
           </div>
           <div className="make-this-preview">
             <div className="make-this-frame">
               {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src={result.photoSrc} alt="Post preview" />
+              <img
+                src={result.photoSrc}
+                alt={
+                  result.imageKind === "edit"
+                    ? "Edited image from your order"
+                    : "Post preview"
+                }
+              />
             </div>
             <pre className="make-this-caption">{result.caption}</pre>
           </div>
@@ -300,6 +355,15 @@ export function MakeThisPost() {
             <button type="button" className="new-button" onClick={() => void copyCaption()}>
               {copied ? "Copied" : "Copy caption"}
             </button>
+            {result.imageKind === "edit" ? (
+              <a
+                className="new-button"
+                href={result.photoSrc}
+                download={downloadNameForImage(result.photoSrc)}
+              >
+                Download / Save image
+              </a>
+            ) : null}
           </div>
           {destinations.length > 0 ? (
             <div className="make-this-destinations" role="group" aria-label="Open destination">

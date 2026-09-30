@@ -1173,10 +1173,12 @@ a.brand-mark { color: inherit; text-decoration: none; }
   }
 }
 .post-preview-column {
+  /* Normal page flow: scrolls away with the page, never pinned over content. */
+  align-self: start;
   display: grid;
   gap: 12px;
-  position: sticky;
-  top: 16px;
+  min-width: 0;
+  position: static;
 }
 .post-phone {
   border: 2px solid;
@@ -1266,6 +1268,22 @@ a.brand-mark { color: inherit; text-decoration: none; }
   height: 4px;
   margin: 10px auto 0;
   width: 28%;
+}
+/* Decorative phone chrome never takes taps. */
+.post-phone-notch,
+.post-phone-home {
+  pointer-events: none;
+}
+.post-phone-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+.post-phone-actions .door-upgrade-btn {
+  margin-top: 0;
+}
+.post-phone-actions .copy-fallback {
+  flex-basis: 100%;
 }
 .post-photo-picks {
   display: flex;
@@ -1648,6 +1666,24 @@ a.brand-mark { color: inherit; text-decoration: none; }
   border-radius: 999px;
   border: 1px solid color-mix(in srgb, var(--make-accent, #8a8179) 55%, transparent);
   color: var(--make-accent, #8a8179);
+}
+.make-this-badges {
+  align-items: center;
+  display: inline-flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  justify-content: flex-end;
+}
+.make-this-image-source {
+  flex-shrink: 0;
+  font-size: 0.7rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  padding: 0.2rem 0.5rem;
+  border-radius: 999px;
+  border: 1px solid color-mix(in srgb, var(--make-primary, #ad885d) 70%, transparent);
+  color: var(--make-text, #f4f6f2);
+  background: color-mix(in srgb, var(--make-primary, #ad885d) 18%, transparent);
 }
 .make-this-source.is-ai {
   border-color: color-mix(in srgb, var(--make-primary, #ad885d) 70%, transparent);

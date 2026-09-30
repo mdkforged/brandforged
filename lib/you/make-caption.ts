@@ -1,3 +1,5 @@
+import { extractOrderTitle } from "@/lib/you/make-order";
+
 /**
  * Make this captions: AI preferred; local rewrite only as fallback.
  * The one-line brief is the subject of the post. Never echo it, and never
@@ -91,6 +93,8 @@ const RELEASE_WORDS_RE =
 /** Pull a release title out of briefs like "Album art - Moment To Rise". */
 export function extractReleaseTitle(brief: string): string | null {
   const text = brief.trim().replace(/\s+/g, " ");
+  const ordered = extractOrderTitle(text);
+  if (ordered) return ordered;
   const quoted = text.match(/["\u201C]([^"\u201D]{2,80})["\u201D]/);
   if (quoted && quoted[1].trim()) return quoted[1].trim();
   const parts = text

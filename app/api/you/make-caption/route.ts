@@ -6,6 +6,7 @@ import {
   localOnBrandCaption,
   type MakeCaptionInput,
 } from "@/lib/you/make-caption";
+import { classifyBrief, extractOrderQuote } from "@/lib/you/make-order";
 
 export const runtime = "nodejs";
 
@@ -77,14 +78,22 @@ export async function POST(request: Request) {
   // The Look photo is never sent to the model: the brief is the subject.
   const releaseTitle = extractReleaseTitle(input.oneLiner);
   const photoRequested = briefAsksForPhotoCaption(input.oneLiner);
+  const isVisualOrder = classifyBrief(input.oneLiner) === "visual";
+  const orderQuote = isVisualOrder ? extractOrderQuote(input.oneLiner) : null;
   const userParts = [
     `SUBJECT OF THE POST (write about this; do not paste or restate it): ${input.oneLiner}`,
-    releaseTitle
+    releaseTitle && releaseTitle !== orderQuote
       ? `Release named in the brief: "${releaseTitle}" - write about this release.`
       : "",
     photoRequested
       ? "The brief asks for a photo caption. Keep to what the brief says about the look; do not invent image details."
       : "Photo: not provided and not the subject. Do not describe any image.",
+    isVisualOrder
+      ? "The brief is an image order (it changes the picture). The caption goes with the finished piece: write about the subject or release it names, not about the edit, the design, or the photo."
+      : "",
+    orderQuote
+      ? `Quote on the piece: "${orderQuote}" - speak to its meaning; do not repeat it word for word.`
+      : "",
     `Brand: ${input.brandName}`,
     input.voiceLabel ? `Voice label: ${input.voiceLabel}` : "",
     input.voiceTone?.length ? `Voice tone: ${input.voiceTone.join(", ")}` : "",
