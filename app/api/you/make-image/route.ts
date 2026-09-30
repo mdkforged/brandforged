@@ -7,6 +7,7 @@ import {
   buildImageEditPrompt,
   type PaletteSwatch,
 } from "@/lib/you/make-order";
+import { masterToPalette, parseBrandMaster } from "@/lib/brand/brand-masters";
 
 export const runtime = "nodejs";
 export const maxDuration = 60;
@@ -21,6 +22,7 @@ type Body = {
   imageDataUrl?: unknown;
   brandName?: unknown;
   palette?: unknown;
+  brand?: unknown;
 };
 
 function asString(v: unknown): string {
@@ -71,12 +73,20 @@ export async function POST(request: Request) {
     process.env.XAI_API_KEY?.trim() || process.env.GROK_API_KEY?.trim() || "";
   if (!apiKey) return fail(503, "not_connected");
 
-  const brandName = asString(body.brandName).slice(0, 80);
-  // Tethered & Truth always uses the locked Master Palette.
-  const palette: PaletteSwatch[] = isTetheredTruthBrand(brandName)
-    ? TETHERED_TRUTH_SWATCHES.map((s) => ({ name: s.name, hex: s.hex }))
-    : parsePalette(body.palette);
-  const prompt = buildImageEditPrompt({ order, brandName, palette });
+  // The applied Brand 1 / 2 / 3 master replaces any hardcoded palette.
+  const master = parseBrandMaster(body.brand);
+  const brandName = master ? master.name : asString(body.brandName).slice(0, 80);
+  const palette: PaletteSwatch[] = master
+    ? masterToPalette(master)
+    : isTetheredTruthBrand(brandName)
+      ? TETHERED_TRUTH_SWATCHES.map((s) => ({ name: s.name, hex: s.hex }))
+      : parsePalette(body.palette);
+  const prompt = buildImageEditPrompt({
+    order,
+    brandName,
+    palette,
+    brandRule: master?.rule,
+  });
 
   for (const model of EDIT_MODELS) {
     let res: Response;

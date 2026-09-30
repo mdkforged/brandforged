@@ -17,14 +17,25 @@ import {
   type SocialSiteId,
 } from "@/lib/onboarding/social";
 import { PLATFORM_OPEN_URL } from "@/lib/onboarding/reach-packs";
-import { requestAiCaption } from "@/lib/you/make-caption";
-import { classifyBrief, type PaletteSwatch } from "@/lib/you/make-order";
+import { requestAiCaption, selectNotesForBrief } from "@/lib/you/make-caption";
+import { loadNotes } from "@/lib/you/notes";
+import { classifyBrief } from "@/lib/you/make-order";
 import { downloadNameForImage, requestImageEdit } from "@/lib/you/make-image";
 import {
   isTetheredTruthBrand,
   TETHERED_TRUTH_KIT_TOKENS,
-  TETHERED_TRUTH_SWATCHES,
 } from "@/lib/brand/tethered-truth-palette";
+import {
+  BRAND_SLOTS,
+  loadBrandMasters,
+  loadBrandPick,
+  masterToPalette,
+  saveBrandPick,
+  type BrandMasters,
+  type BrandSlot,
+} from "@/lib/brand/brand-masters";
+import { BrandMastersPocket } from "@/components/you/brand-masters-pocket";
+import { addDataUrlToVault } from "@/lib/vault/vault-store";
 
 const MAKE_DESTINATIONS: SocialSiteId[] = [
   "instagram",
@@ -52,6 +63,25 @@ export function MakeThisPost() {
   const [error, setError] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
   const [result, setResult] = useState<MakeResult | null>(null);
+  // Brand masters + picked brand: lazy reads from this device (no effects).
+  const [masters, setMasters] = useState<BrandMasters>(loadBrandMasters);
+  const [brandPick, setBrandPick] = useState<BrandSlot>(() =>
+    loadBrandPick(loadBrandMasters()),
+  );
+  const [brandMsg, setBrandMsg] = useState<string | null>(null);
+  const [pocketOpen, setPocketOpen] = useState(false);
+  const [pocketSlot, setPocketSlot] = useState<BrandSlot>(1);
+  const pocketRef = useRef<HTMLDivElement>(null);
+  // The optional one-off upload never blocks Make this with the Look photo.
+  const [uploading, setUploading] = useState(false);
+  // Bumped when she taps a Look thumb so a late upload never overrides it.
+  const uploadTokenRef = useRef(0);
+  const [vaultSaving, setVaultSaving] = useState(false);
+  const [vaultNote, setVaultNote] = useState<{
+    src: string;
+    ok: boolean;
+    text: string;
+  } | null>(null);
 
   const lookPhotos = useMemo(() => {
     const photos = Array.isArray(answers?.referencePhotos)
@@ -61,11 +91,6 @@ export function MakeThisPost() {
       : [];
     return photos;
   }, [answers]);
-
-  const brandName =
-    (typeof answers?.brandName === "string" && answers.brandName.trim()) ||
-    (typeof answers?.aboutYou === "string" && answers.aboutYou.trim()) ||
-    "your brand";
 
   const kit = answers?.kit;
   const tokens = kit?.tokens;
@@ -92,10 +117,14 @@ export function MakeThisPost() {
     return MAKE_DESTINATIONS.filter((id) => set.has(id));
   }, [answers]);
 
+  // Always one highlighted Look photo when any exist (default: the first).
+  const lookIndex =
+    lookPhotos.length > 0 ? Math.min(selectedIndex, lookPhotos.length - 1) : -1;
   const selectedPhoto = uploadSrc
     ? uploadSrc
-    : lookPhotos[Math.min(selectedIndex, Math.max(lookPhotos.length - 1, 0))] ||
-      null;
+    : lookIndex >= 0
+      ? lookPhotos[lookIndex]
+      : null;
 
   const paletteStyle = {
     "--make-primary": primaryHex,
@@ -103,6 +132,35 @@ export function MakeThisPost() {
     "--make-accent": accentHex,
     "--make-text": textHex,
   } as CSSProperties;
+
+  function onPickBrand(slot: BrandSlot) {
+    if (!masters[slot]) {
+      // Never invent a palette: ask her to save the empty brand first.
+      setBrandMsg(
+        `Brand ${slot} is empty. Save Brand ${slot} first - add its name and colors below.`,
+      );
+      setPocketSlot(slot);
+      setPocketOpen(true);
+      window.setTimeout(() => {
+        pocketRef.current?.scrollIntoView({ behavior: "smooth", block: "nearest" });
+      }, 0);
+      return;
+    }
+    setBrandMsg(null);
+    setBrandPick(slot);
+    saveBrandPick(slot);
+    setResult(null);
+  }
+
+  function onMastersSaved(next: BrandMasters) {
+    setMasters(next);
+    setBrandMsg(null);
+    setResult(null);
+    if (!next[brandPick]) {
+      setBrandPick(1);
+      saveBrandPick(1);
+    }
+  }
 
   async function onUpload(event: ChangeEvent<HTMLInputElement>) {
     const file = event.target.files?.[0];
@@ -112,17 +170,31 @@ export function MakeThisPost() {
       setError("Use a photo file (JPG, PNG, etc.).");
       return;
     }
-    setBusy(true);
+    const token = uploadTokenRef.current + 1;
+    uploadTokenRef.current = token;
+    setUploading(true);
     setError(null);
     try {
       const dataUrl = await fileToReferenceDataUrl(file);
+      if (uploadTokenRef.current !== token) return;
       setUploadSrc(dataUrl);
       setResult(null);
     } catch {
-      setError("Could not read that photo. Try again.");
+      if (uploadTokenRef.current === token) {
+        setError("Could not read that photo. Try again.");
+      }
     } finally {
-      setBusy(false);
+      if (uploadTokenRef.current === token) setUploading(false);
     }
+  }
+
+  function pickLook(index: number) {
+    // Tapping a Look thumb clears the one-off upload override.
+    uploadTokenRef.current += 1;
+    setUploading(false);
+    setUploadSrc(null);
+    setSelectedIndex(index);
+    setResult(null);
   }
 
   async function onMake() {
@@ -130,7 +202,7 @@ export function MakeThisPost() {
     setCopied(false);
     const photo = selectedPhoto;
     if (!photo) {
-      setError("Pick a Look photo or upload one first.");
+      setError("Add a Look photo above first.");
       return;
     }
     const line = oneLiner.trim();
@@ -138,13 +210,23 @@ export function MakeThisPost() {
       setError("Add one sentence about what this post is.");
       return;
     }
+    // Only the applied brand's master - no mixing, no fallback to T&T tokens.
+    const master = masters[brandPick];
+    if (!master) {
+      setError(`Save Brand ${brandPick} first.`);
+      return;
+    }
+    const useKitVoice = brandPick === 1;
     const kind = classifyBrief(line);
     const captionInput = {
-      brandName,
+      brandName: master.name,
       oneLiner: line,
-      voiceLabel: kit?.voiceLabel,
-      voiceTone: tokens?.voiceTone,
-      moodTags: tokens?.moodTags,
+      voiceLabel: useKitVoice ? kit?.voiceLabel : undefined,
+      voiceTone: useKitVoice ? tokens?.voiceTone : undefined,
+      moodTags: useKitVoice ? tokens?.moodTags : undefined,
+      // Notes read at click time (no effect): her own words about the release.
+      notes: selectNotesForBrief(loadNotes(), line),
+      brand: master,
     };
     setBusyLabel(kind === "visual" ? "Editing image..." : "Making...");
     setBusy(true);
@@ -152,16 +234,14 @@ export function MakeThisPost() {
     try {
       if (kind === "visual") {
         // The brief is an order about the selected photo: edit the image.
-        const palette: PaletteSwatch[] = isTetheredTruthBrand(brandForPalette)
-          ? TETHERED_TRUTH_SWATCHES.map((s) => ({ name: s.name, hex: s.hex }))
-          : [
-              { name: "Primary", hex: primaryHex },
-              { name: "Background", hex: backgroundHex },
-              { name: "Accent", hex: accentHex },
-              { name: "Text", hex: textHex },
-            ];
         const [edit, cap] = await Promise.all([
-          requestImageEdit({ order: line, photoSrc: photo, brandName, palette }),
+          requestImageEdit({
+            order: line,
+            photoSrc: photo,
+            brandName: master.name,
+            palette: masterToPalette(master),
+            brand: master,
+          }),
           requestAiCaption(captionInput),
         ]);
         if (!edit.ok) {
@@ -183,6 +263,22 @@ export function MakeThisPost() {
       setError("Could not make the caption. Try again.");
     } finally {
       setBusy(false);
+    }
+  }
+
+  async function saveResultToVault() {
+    if (!result || result.imageKind !== "edit") return;
+    const src = result.photoSrc;
+    setVaultSaving(true);
+    try {
+      const res = await addDataUrlToVault(src);
+      setVaultNote({
+        src,
+        ok: res.ok,
+        text: res.ok ? "Saved to the Vault." : res.message,
+      });
+    } finally {
+      setVaultSaving(false);
     }
   }
 
@@ -234,7 +330,7 @@ export function MakeThisPost() {
 
       <div className="make-this-photos" role="listbox" aria-label="Look photo">
         {lookPhotos.map((src, index) => {
-          const selected = !uploadSrc && selectedIndex === index;
+          const selected = !uploadSrc && lookIndex === index;
           return (
             <button
               key={`make-look-${index}`}
@@ -244,11 +340,7 @@ export function MakeThisPost() {
               className={
                 selected ? "make-this-thumb is-selected" : "make-this-thumb"
               }
-              onClick={() => {
-                setUploadSrc(null);
-                setSelectedIndex(index);
-                setResult(null);
-              }}
+              onClick={() => pickLook(index)}
             >
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img src={src} alt={`Look ${index + 1}`} />
@@ -261,13 +353,14 @@ export function MakeThisPost() {
             uploadSrc ? "make-this-thumb is-selected make-this-upload" : "make-this-thumb make-this-upload"
           }
           onClick={() => uploadRef.current?.click()}
-          disabled={busy}
+          disabled={busy || uploading}
+          title="Optional: use a different photo for this post only"
         >
           {uploadSrc ? (
             // eslint-disable-next-line @next/next/no-img-element
             <img src={uploadSrc} alt="Uploaded for this post" />
           ) : (
-            <span>+ Upload</span>
+            <span>{uploading ? "Reading..." : "+ Upload"}</span>
           )}
         </button>
         <input
@@ -278,6 +371,11 @@ export function MakeThisPost() {
           onChange={onUpload}
         />
       </div>
+      <p className="make-this-using">
+        {uploadSrc
+          ? "Using your one-off upload. Tap a Look photo to go back."
+          : `Using Look photo ${lookIndex + 1}.`}
+      </p>
 
       <label className="make-this-line">
         <span>What this post is</span>
@@ -292,6 +390,65 @@ export function MakeThisPost() {
           }}
         />
       </label>
+
+      <div className="make-this-brands" role="group" aria-label="Apply brand">
+        {BRAND_SLOTS.map((slot) => {
+          const m = masters[slot];
+          const on = brandPick === slot;
+          const cls = ["make-this-brand", on ? "is-on" : "", m ? "" : "is-empty"]
+            .filter(Boolean)
+            .join(" ");
+          return (
+            <button
+              key={`apply-brand-${slot}`}
+              type="button"
+              className={cls}
+              aria-pressed={on}
+              title={m ? m.name : `Brand ${slot} is empty - save it first`}
+              onClick={() => onPickBrand(slot)}
+            >
+              Apply Brand {slot}
+              {m ? (
+                <span className="make-this-brand-swatches" aria-hidden>
+                  {[m.backgroundHex, m.primaryHex, m.accentHex, m.textHex].map(
+                    (hex, i) => (
+                      <span key={`swatch-${slot}-${i}`} style={{ background: hex }} />
+                    ),
+                  )}
+                </span>
+              ) : null}
+            </button>
+          );
+        })}
+      </div>
+      <div className="make-this-brand-meta">
+        <span>
+          Using Brand {brandPick}: {masters[brandPick]?.name || masters[1].name}
+        </span>
+        <button
+          type="button"
+          className="make-this-brand-edit"
+          aria-expanded={pocketOpen}
+          onClick={() => setPocketOpen((v) => !v)}
+        >
+          {pocketOpen ? "Hide brand masters" : "Edit brand masters"}
+        </button>
+      </div>
+      {brandMsg ? (
+        <p className="locked-you-error" role="alert">
+          {brandMsg}
+        </p>
+      ) : null}
+      {pocketOpen ? (
+        <div ref={pocketRef}>
+          <BrandMastersPocket
+            masters={masters}
+            slot={pocketSlot}
+            onSlotChange={setPocketSlot}
+            onSaved={onMastersSaved}
+          />
+        </div>
+      ) : null}
 
       <button
         type="button"
@@ -364,7 +521,32 @@ export function MakeThisPost() {
                 Download / Save image
               </a>
             ) : null}
+            {result.imageKind === "edit" ? (
+              <button
+                type="button"
+                className="new-button"
+                disabled={
+                  vaultSaving ||
+                  (vaultNote?.ok === true && vaultNote.src === result.photoSrc)
+                }
+                onClick={() => void saveResultToVault()}
+              >
+                {vaultSaving
+                  ? "Saving..."
+                  : vaultNote?.ok === true && vaultNote.src === result.photoSrc
+                    ? "Saved to Vault"
+                    : "Save to Vault"}
+              </button>
+            ) : null}
           </div>
+          {vaultNote && vaultNote.src === result.photoSrc ? (
+            <p
+              className={vaultNote.ok ? "vault-notice" : "locked-you-error"}
+              role={vaultNote.ok ? "status" : "alert"}
+            >
+              {vaultNote.text}
+            </p>
+          ) : null}
           {destinations.length > 0 ? (
             <div className="make-this-destinations" role="group" aria-label="Open destination">
               <p className="make-this-result-label">Open to paste</p>

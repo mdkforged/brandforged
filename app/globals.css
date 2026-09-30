@@ -1689,3 +1689,226 @@ a.brand-mark { color: inherit; text-decoration: none; }
   border-color: color-mix(in srgb, var(--make-primary, #ad885d) 70%, transparent);
   color: var(--make-primary, #ad885d);
 }
+
+/* Make this - Apply Brand 1 / 2 / 3 + brand masters pocket */
+.make-this-brands {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 0 0 8px;
+}
+.make-this-brand,
+.brand-pocket-tab {
+  align-items: center;
+  background: transparent;
+  border: 1px solid color-mix(in srgb, var(--make-accent, #8a8179) 55%, transparent);
+  border-radius: 999px;
+  color: var(--make-text, #f4f6f2);
+  cursor: pointer;
+  display: inline-flex;
+  font: inherit;
+  font-size: 0.85rem;
+  font-weight: 600;
+  gap: 8px;
+  padding: 8px 12px;
+}
+.make-this-brand.is-on,
+.brand-pocket-tab.is-on {
+  background: color-mix(in srgb, var(--make-primary, #ad885d) 22%, transparent);
+  border-color: var(--make-primary, #ad885d);
+}
+.make-this-brand.is-empty {
+  border-style: dashed;
+  opacity: 0.75;
+}
+.make-this-brand-swatches {
+  display: inline-flex;
+  gap: 2px;
+  pointer-events: none;
+}
+.make-this-brand-swatches span {
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  border-radius: 3px;
+  height: 10px;
+  width: 10px;
+}
+.make-this-brand-meta {
+  align-items: center;
+  display: flex;
+  flex-wrap: wrap;
+  font-size: 0.85rem;
+  gap: 10px;
+  margin: 0 0 12px;
+  opacity: 0.9;
+}
+.make-this-brand-edit {
+  background: transparent;
+  border: 0;
+  color: var(--make-primary, #ad885d);
+  cursor: pointer;
+  font: inherit;
+  padding: 0;
+  text-decoration: underline;
+}
+.brand-pocket {
+  border: 1px solid color-mix(in srgb, var(--make-accent, #8a8179) 40%, transparent);
+  border-radius: 12px;
+  display: grid;
+  gap: 10px;
+  margin: 0 0 14px;
+  padding: 12px;
+}
+.brand-pocket-head,
+.brand-pocket-form {
+  display: grid;
+  gap: 10px;
+}
+.brand-pocket-tabs,
+.brand-pocket-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.brand-pocket-field {
+  display: grid;
+  gap: 6px;
+}
+.brand-pocket-field > span,
+.brand-pocket-hex > span {
+  font-size: 0.8rem;
+  font-weight: 600;
+}
+.brand-pocket-field input,
+.brand-pocket-hex input[type="text"] {
+  background: color-mix(in srgb, var(--make-bg, #0c0c0d) 88%, #fff 4%);
+  border: 1px solid color-mix(in srgb, var(--make-accent, #8a8179) 50%, transparent);
+  border-radius: 10px;
+  color: inherit;
+  font: inherit;
+  min-width: 0;
+  padding: 10px 12px;
+  width: 100%;
+}
+.brand-pocket-hexes {
+  display: grid;
+  gap: 10px;
+  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+}
+.brand-pocket-hex {
+  align-items: center;
+  display: grid;
+  gap: 6px;
+  grid-template-columns: 40px minmax(0, 1fr);
+}
+.brand-pocket-hex > span {
+  grid-column: 1 / -1;
+}
+.brand-pocket-hex input[type="color"] {
+  background: transparent;
+  border: 0;
+  cursor: pointer;
+  height: 40px;
+  padding: 0;
+  width: 40px;
+}
+.brand-pocket-hex input[type="text"] {
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+}
+.brand-pocket-status {
+  font-size: 0.85rem;
+  margin: 0;
+}
+
+/* Vault: saved stills shelf on This is You */
+.vault-copy {
+  margin: 0 0 10px;
+  font-size: 0.92rem;
+  opacity: 0.85;
+  line-height: 1.45;
+}
+.vault-shelf {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-bottom: 8px;
+}
+.vault-thumb {
+  position: relative;
+  width: 72px;
+  height: 72px;
+  padding: 0;
+  border-radius: 12px;
+  border: 2px solid transparent;
+  overflow: hidden;
+  background: #0c0c0d;
+  cursor: pointer;
+  color: inherit;
+}
+.vault-thumb img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+.vault-thumb.is-selected {
+  border-color: #ad885d;
+}
+.vault-add-tile {
+  align-items: center;
+  border: 1px dashed rgba(173, 136, 93, 0.6);
+  display: flex;
+  flex-direction: column;
+  font-weight: 700;
+  gap: 2px;
+  justify-content: center;
+}
+.vault-add-tile span {
+  font-size: 24px;
+  line-height: 1;
+}
+.vault-add-tile small {
+  font-size: 11px;
+}
+.vault-replace-hint {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  padding: 3px 4px;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: #fff;
+  background: linear-gradient(transparent, rgba(0, 0, 0, 0.7));
+}
+.vault-count {
+  margin: 0 0 8px;
+  font-size: 0.8rem;
+  opacity: 0.7;
+}
+.vault-full,
+.vault-notice {
+  margin: 0 0 10px;
+  font-size: 0.9rem;
+}
+.vault-full {
+  color: #e0b979;
+  font-weight: 600;
+}
+.vault-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 10px;
+}
+.vault-replace {
+  border-top: 1px solid rgba(173, 136, 93, 0.3);
+  padding-top: 10px;
+  margin-bottom: 10px;
+}
+.make-this-using {
+  margin: -6px 0 12px;
+  font-size: 0.85rem;
+  opacity: 0.8;
+}

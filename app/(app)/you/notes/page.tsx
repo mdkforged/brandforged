@@ -2,17 +2,9 @@
 
 import Link from "next/link";
 import { useState } from "react";
+import { loadNotes, NOTES_STORAGE_KEY } from "@/lib/you/notes";
 
-const NOTES_KEY = "bf-you-notes-v1";
-
-function loadNotes(): string {
-  if (typeof window === "undefined") return "";
-  try {
-    return window.localStorage.getItem(NOTES_KEY) || "";
-  } catch {
-    return "";
-  }
-}
+const NOTES_KEY = NOTES_STORAGE_KEY;
 
 export default function YouNotesPage() {
   const [notes, setNotes] = useState(loadNotes);

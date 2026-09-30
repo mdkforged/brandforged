@@ -4,6 +4,7 @@
  * /api/you/make-image for a real edit of that photo.
  */
 import type { PaletteSwatch } from "@/lib/you/make-order";
+import type { BrandMaster } from "@/lib/brand/brand-masters";
 
 export const IMAGE_NOT_CONNECTED_MESSAGE =
   "Image edit isn't connected yet \u2014 nothing was changed.";
@@ -57,6 +58,8 @@ export async function requestImageEdit(input: {
   photoSrc: string;
   brandName: string;
   palette: PaletteSwatch[];
+  /** Applied Brand 1 / 2 / 3 master; the server uses only this. */
+  brand?: BrandMaster;
 }): Promise<ImageEditResult> {
   let imageDataUrl: string;
   try {
@@ -77,6 +80,7 @@ export async function requestImageEdit(input: {
         imageDataUrl,
         brandName: input.brandName,
         palette: input.palette,
+        brand: input.brand,
       }),
     });
     const data = (await res.json().catch(() => null)) as {

@@ -3,15 +3,23 @@ import {
   briefAsksForPhotoCaption,
   enforceFourHashtags,
   extractReleaseTitle,
+  hashtagsForBrand,
   localOnBrandCaption,
+  notesMatchRelease,
+  stripMetaText,
   type MakeCaptionInput,
 } from "@/lib/you/make-caption";
 import { classifyBrief, extractOrderQuote } from "@/lib/you/make-order";
+import { parseBrandMaster } from "@/lib/brand/brand-masters";
 
 export const runtime = "nodejs";
 
-const SYSTEM_PROMPT = [
-  "Artist: Tethered & Truth by MDK.",
+/** Server-side cap on Notes text (client already trims to ~4000). */
+const NOTES_SERVER_MAX = 6000;
+
+function buildSystemPrompt(artist: string, tagShape: string): string {
+  return [
+  `Artist: ${artist}.`,
   "Voice: inspiring, empathetic, powerful. Dark luxury without hype.",
   "Length: medium, 3-6 short sentences. Specific. Human.",
   "The user's one-line brief is the job: it names the subject of the post. Write about that subject.",
@@ -20,9 +28,12 @@ const SYSTEM_PROMPT = [
   "Do NOT describe the photo or image. You cannot see it. Never write 'the frame captures', and never list flowers, lighting, colors, outfits, poses, or scenery. Words like album art, cover, or look in the brief say what the image is for, not what to write about.",
   "Only speak to the image itself if the brief explicitly asks for a caption for this photo or to describe the photo / the look, and even then stay with what the brief says.",
   "Never use: now available, listen where you like, out now, emoji dumps, hashtag walls, slay, or corporate launch-speak.",
-  "End the caption with exactly 4 popular, relevant hashtags on their own last line (example shape: #NewMusic #TetheredAndTruth #IndependentArtist #NowPlaying). Not 3, not 5, not a dump.",
+  "When NOTES are provided and they name the same release as the brief, the notes ARE the meaning of the caption: carry their substance and emotional truth (who it is dedicated to, prayer, the body fighting back, faith, why it was worth it to try), paraphrased in her voice. Never paste the notes verbatim or quote them at length. If the notes are about something else, ignore them.",
+  "Write one finished caption, ready to post. Never tell her to go somewhere else to rewrite or finish it, never offer options, and never add meta text like 'you may want to edit this' or 'feel free to adjust'.",
+  `End the caption with exactly 4 popular, relevant hashtags on their own last line (example shape: ${tagShape}). Not 3, not 5, not a dump.`,
   "Return caption text only. No quotes, no labels, no preamble.",
 ].join(" ");
+}
 
 type Body = {
   brandName?: unknown;
@@ -30,6 +41,8 @@ type Body = {
   voiceLabel?: unknown;
   voiceTone?: unknown;
   moodTags?: unknown;
+  notes?: unknown;
+  brand?: unknown;
 };
 
 function asString(v: unknown): string {
@@ -60,12 +73,16 @@ export async function POST(request: Request) {
     body = {};
   }
 
+  // Applied Brand 1 / 2 / 3 master: its name is voice context only.
+  const master = parseBrandMaster(body.brand);
   const input: MakeCaptionInput = {
-    brandName: asString(body.brandName) || "Tethered & Truth",
+    brandName: master?.name || asString(body.brandName) || "Tethered & Truth",
+    brand: master || undefined,
     oneLiner: asString(body.oneLiner),
     voiceLabel: asString(body.voiceLabel) || undefined,
     voiceTone: asStringArray(body.voiceTone),
     moodTags: asStringArray(body.moodTags),
+    notes: asString(body.notes).slice(0, NOTES_SERVER_MAX) || undefined,
   };
 
   const apiKey =
@@ -80,6 +97,12 @@ export async function POST(request: Request) {
   const photoRequested = briefAsksForPhotoCaption(input.oneLiner);
   const isVisualOrder = classifyBrief(input.oneLiner) === "visual";
   const orderQuote = isVisualOrder ? extractOrderQuote(input.oneLiner) : null;
+  const notes = input.notes || "";
+  const artist = input.brand ? input.brand.name : "Tethered & Truth by MDK";
+  const brandTags = hashtagsForBrand(input.brandName);
+  const notesOnRelease = Boolean(
+    releaseTitle && notes && notesMatchRelease(notes, releaseTitle),
+  );
   const userParts = [
     `SUBJECT OF THE POST (write about this; do not paste or restate it): ${input.oneLiner}`,
     releaseTitle && releaseTitle !== orderQuote
@@ -95,11 +118,19 @@ export async function POST(request: Request) {
       ? `Quote on the piece: "${orderQuote}" - speak to its meaning; do not repeat it word for word.`
       : "",
     `Brand: ${input.brandName}`,
+    input.brand?.rule
+      ? `Brand rule (follow it where it applies to words): ${input.brand.rule}`
+      : "",
     input.voiceLabel ? `Voice label: ${input.voiceLabel}` : "",
     input.voiceTone?.length ? `Voice tone: ${input.voiceTone.join(", ")}` : "",
     input.moodTags?.length
       ? `Mood (tone only, not image content): ${input.moodTags.join(", ")}`
       : "",
+    notesOnRelease
+      ? `NOTES - her own words about "${releaseTitle}". These notes ARE the meaning of this caption. Carry their substance and emotional truth, paraphrased; do not paste or quote them:\n${notes}`
+      : notes
+        ? `NOTES (her private notes; use them only where they speak to the subject of the post; paraphrase, never paste):\n${notes}`
+        : "",
   ].filter(Boolean);
 
   try {
@@ -114,7 +145,7 @@ export async function POST(request: Request) {
         temperature: 0.7,
         max_tokens: 220,
         messages: [
-          { role: "system", content: SYSTEM_PROMPT },
+          { role: "system", content: buildSystemPrompt(artist, brandTags.join(" ")) },
           { role: "user", content: userParts.join("\n") },
         ],
       }),
@@ -128,11 +159,13 @@ export async function POST(request: Request) {
       choices?: Array<{ message?: { content?: string } }>;
     };
     const raw = data.choices?.[0]?.message?.content ?? "";
-    const cleaned = String(raw).trim().replace(/^["']|["']$/g, "");
+    const cleaned = stripMetaText(
+      String(raw).trim().replace(/^["']|["']$/g, ""),
+    );
     if (!cleaned.replace(/#[A-Za-z0-9_]+/g, "").trim()) {
       return localResponse(input);
     }
-    const caption = enforceFourHashtags(cleaned);
+    const caption = enforceFourHashtags(cleaned, brandTags);
 
     return NextResponse.json({ caption, source: "ai" as const });
   } catch {

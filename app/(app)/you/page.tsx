@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { LockedAsYouPhotos } from "@/components/you/locked-as-you-photos";
+import { VaultShelf } from "@/components/you/vault-shelf";
 import { MakeThisPost } from "@/components/you/make-this-post";
 import { QuickSocialPostsBox } from "@/components/you/quick-social-posts-box";
 import { YouHomeGreeting } from "@/components/you/you-home-greeting";
@@ -42,6 +43,8 @@ export default function ThisIsYouPage() {
         <h2>Look</h2>
         <LockedAsYouPhotos />
       </article>
+
+      <VaultShelf />
 
       <MakeThisPost />
 

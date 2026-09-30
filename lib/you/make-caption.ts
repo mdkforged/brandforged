@@ -1,4 +1,5 @@
 import { extractOrderTitle } from "@/lib/you/make-order";
+import type { BrandMaster } from "@/lib/brand/brand-masters";
 
 /**
  * Make this captions: AI preferred; local rewrite only as fallback.
@@ -12,6 +13,10 @@ export type MakeCaptionInput = {
   voiceLabel?: string;
   voiceTone?: string[];
   moodTags?: string[];
+  /** Her Notes (bf-you-notes-v1), trimmed to what matters for this brief. */
+  notes?: string;
+  /** Applied Brand 1 / 2 / 3 master: name is voice context only. */
+  brand?: BrandMaster;
 };
 
 export type MakeCaptionResult = {
@@ -36,7 +41,10 @@ const TRAILING_TAGS_RE = /(?:\s+#[A-Za-z0-9_]+)+[\s,]*$/;
  * Trailing tag runs / tag-only lines are collected; extras are trimmed;
  * missing ones are padded from DEFAULT_CAPTION_HASHTAGS.
  */
-export function enforceFourHashtags(caption: string): string {
+export function enforceFourHashtags(
+  caption: string,
+  defaults: readonly string[] = DEFAULT_CAPTION_HASHTAGS,
+): string {
   const lines = caption.replace(/\r\n/g, "\n").trim().split("\n");
   const tags: string[] = [];
   const bodyLines: string[] = [];
@@ -62,7 +70,7 @@ export function enforceFourHashtags(caption: string): string {
   }
   const seen = new Set<string>();
   const picked: string[] = [];
-  for (const tag of [...tags, ...DEFAULT_CAPTION_HASHTAGS]) {
+  for (const tag of [...tags, ...defaults]) {
     const key = tag.toLowerCase();
     if (seen.has(key)) continue;
     seen.add(key);
@@ -74,6 +82,22 @@ export function enforceFourHashtags(caption: string): string {
     .replace(/\n{3,}/g, "\n\n")
     .trim();
   return body ? `${body}\n\n${picked.join(" ")}` : picked.join(" ");
+}
+
+/**
+ * Pad set for the applied brand: T&T keeps its default set; any other brand
+ * gets its own name tag - never #TetheredAndTruth mixed in.
+ */
+export function hashtagsForBrand(brandName: string | undefined): readonly string[] {
+  const name = (brandName || "").trim();
+  if (!name || /tethered/i.test(name)) return DEFAULT_CAPTION_HASHTAGS;
+  const words = name.replace(/&/g, " and ").match(/[A-Za-z0-9]+/g) || [];
+  const tag = words
+    .map((w) => w.charAt(0).toUpperCase() + w.slice(1))
+    .join("")
+    .slice(0, 30);
+  const base = ["#NewMusic", "#IndependentArtist", "#NowPlaying", "#Musician"];
+  return tag.length >= 3 ? [`#${tag}`, ...base.slice(0, 3)] : base;
 }
 
 /** True when the brief itself asks for a caption about the photo / the look. */
@@ -125,7 +149,16 @@ export function localOnBrandCaption(input: MakeCaptionInput): string {
   const title = brief ? extractReleaseTitle(brief) : null;
   let sentences: string[];
 
-  if (title) {
+  const phrases = title ? notePhrasesForRelease(input.notes || "", title) : [];
+  if (title && phrases.length) {
+    // Her Notes name this release: one or two of her own short phrases.
+    sentences = [
+      `"${title}" carries something I needed to say.`,
+      ...phrases,
+      "Let it meet you where you are.",
+      "Rise with it.",
+    ];
+  } else if (title) {
     sentences = [
       `"${title}" is for anyone still finding their footing.`,
       "It came from the quiet, from the moments that ask more of you than you think you have.",
@@ -169,7 +202,146 @@ export function localOnBrandCaption(input: MakeCaptionInput): string {
     ];
   }
 
-  return enforceFourHashtags(sentences.join(" "));
+  return enforceFourHashtags(sentences.join(" "), hashtagsForBrand(input.brandName));
+}
+
+/** Most Notes text sent with a brief. */
+export const NOTES_MAX_CHARS = 4000;
+
+const NOTE_STOPWORDS = new Set([
+  "make", "into", "album", "with", "that", "this", "from", "about", "post",
+  "caption", "title", "titled", "font", "gold", "golden", "middle", "center",
+  "centre", "other", "adjustments", "changes", "write", "song", "single",
+  "release", "track", "photo", "image", "picture", "cover", "poster", "flyer",
+  "your", "mine", "have", "just", "only", "then", "them", "they", "what",
+  "when", "will", "would", "could", "should", "there", "their", "here",
+]);
+
+function noteKey(value: string): string {
+  return value.toLowerCase().replace(/[^a-z0-9]+/g, "");
+}
+
+function splitNoteBlocks(notes: string): string[] {
+  const text = notes.replace(/\r\n/g, "\n").trim();
+  if (!text) return [];
+  const blocks = text.split(/\n\s*\n+/).map((b) => b.trim()).filter(Boolean);
+  if (blocks.length > 1) return blocks;
+  return text.split("\n").map((b) => b.trim()).filter(Boolean);
+}
+
+/** True when the Notes name the same release as the brief. */
+export function notesMatchRelease(notes: string, title: string): boolean {
+  const key = noteKey(title);
+  return key.length >= 3 && noteKey(notes).includes(key);
+}
+
+/**
+ * Pick the Notes to send with a brief: everything when short; otherwise
+ * blocks that name the brief's release first, then blocks sharing its
+ * words, then the most recent - capped at maxChars, kept in original order.
+ */
+export function selectNotesForBrief(
+  notes: string,
+  brief: string,
+  maxChars: number = NOTES_MAX_CHARS,
+): string {
+  const text = (notes || "").replace(/\r\n/g, "\n").trim();
+  if (!text) return "";
+  if (text.length <= maxChars) return text;
+  const blocks = splitNoteBlocks(text);
+  const title = extractReleaseTitle(brief);
+  const titleKey = title ? noteKey(title) : "";
+  const words = Array.from(
+    new Set(
+      (brief.toLowerCase().match(/[a-z0-9']{4,}/g) || []).filter(
+        (w) => !NOTE_STOPWORDS.has(w),
+      ),
+    ),
+  );
+  const scored = blocks.map((block, index) => {
+    const lower = block.toLowerCase();
+    let score = 0;
+    if (titleKey && noteKey(block).includes(titleKey)) score += 100;
+    for (const w of words) if (lower.includes(w)) score += 1;
+    return { block, index, score };
+  });
+  const ranked = [...scored].sort((a, b) => b.score - a.score || b.index - a.index);
+  const picked: typeof scored = [];
+  let used = 0;
+  for (const item of ranked) {
+    const len = item.block.length + 2;
+    if (used + len > maxChars) {
+      if (picked.length === 0) {
+        picked.push({ ...item, block: item.block.slice(0, maxChars) });
+        used = maxChars;
+      }
+      continue;
+    }
+    picked.push(item);
+    used += len;
+  }
+  return picked
+    .sort((a, b) => a.index - b.index)
+    .map((p) => p.block)
+    .join("\n\n");
+}
+
+const EMOTION_RE =
+  /\b(?:dedicat|pray|prayer|faith|fight|fought|body|heal|worth|hope|love|believ|god|strength|surviv|rise|rising|breath)/i;
+
+/** One or two short phrases from Notes that name this release (local fallback). */
+export function notePhrasesForRelease(notes: string, title: string): string[] {
+  if (!notes || !notesMatchRelease(notes, title)) return [];
+  const key = noteKey(title);
+  const relevant = splitNoteBlocks(notes).filter((b) => noteKey(b).includes(key));
+  const sentences = relevant.join(" ").match(/[^.!?\n]+[.!?]*/g) || [];
+  const cleaned = sentences
+    .map((s) =>
+      s
+        .replace(/#[A-Za-z0-9_]+/g, "")
+        .replace(/["\u201C\u201D]/g, "")
+        .replace(/\s+/g, " ")
+        .trim(),
+    )
+    .filter(
+      (s) =>
+        s.length >= 15 &&
+        s.length <= 90 &&
+        !/https?:|www\./i.test(s) &&
+        noteKey(s) !== key &&
+        !META_RE.test(s),
+    );
+  const ordered = [
+    ...cleaned.filter((s) => EMOTION_RE.test(s)),
+    ...cleaned.filter((s) => !EMOTION_RE.test(s)),
+  ];
+  const out: string[] = [];
+  for (const s of ordered) {
+    if (out.length === 2) break;
+    if (out.includes(s)) continue;
+    const sentence = s.charAt(0).toUpperCase() + s.slice(1);
+    out.push(/[.!?]$/.test(sentence) ? sentence : `${sentence}.`);
+  }
+  return out;
+}
+
+const META_RE =
+  /\b(?:you (?:may|might|could) want to|feel free to|edit (?:this|it|as needed)|rewrite (?:this|it)|tweak (?:this|it)|adjust (?:this|it|as needed)|another chat|here(?:'s| is) (?:a|your|the) caption|let me know|hope this helps|as an ai)\b/i;
+
+/** Drop meta sentences ("you may want to edit this") and labels from a caption. */
+export function stripMetaText(caption: string): string {
+  return caption
+    .replace(/\r\n/g, "\n")
+    .replace(/^\s*(?:caption|here(?:'s| is) (?:your|the|a) caption)\s*:\s*/i, "")
+    .split("\n")
+    .map((line) => {
+      if (!META_RE.test(line)) return line;
+      const parts = line.match(/[^.!?]+[.!?]*\s*/g) || [line];
+      return parts.filter((p) => !META_RE.test(p)).join("").trim();
+    })
+    .join("\n")
+    .replace(/\n{3,}/g, "\n\n")
+    .trim();
 }
 
 /** Client: POST /api/you/make-caption; fall back to local only if the API fails. */
@@ -186,6 +358,8 @@ export async function requestAiCaption(
         voiceLabel: input.voiceLabel,
         voiceTone: input.voiceTone,
         moodTags: input.moodTags,
+        notes: input.notes,
+        brand: input.brand,
       }),
     });
     if (!res.ok) {
