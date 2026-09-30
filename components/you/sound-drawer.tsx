@@ -11,20 +11,65 @@ import {
 } from "react";
 import {
   FREE_CATALOG_LINKS,
-  MAX_SOUND_BYTES,
-  addUploadedSound,
+  MAX_SOUND_MB,
+  addUploadedSoundFile,
   formatSoundSize,
   getSelectedSound,
   loadSoundLibrary,
-  readAudioFileAsDataUrl,
   removeSound,
+  resolveSoundSrc,
   selectSound,
+  validateSoundFile,
   type LibrarySound,
   type SoundLibraryState,
 } from "@/lib/sounds/sound-library";
 
 const ATTESTATION_LABEL =
   "I own this music, or I have legal permission to use it in Brand Forged.";
+
+/** Plays a library sound from its data URL or its IndexedDB bytes. */
+function SoundAudio({ sound }: { sound: LibrarySound }) {
+  const [src, setSrc] = useState<string | null>(sound.dataUrl || null);
+  const [missing, setMissing] = useState(false);
+
+  useEffect(() => {
+    if (sound.dataUrl) return;
+    let cancelled = false;
+    let objectUrl: string | null = null;
+    void resolveSoundSrc(sound).then((url) => {
+      if (cancelled) {
+        if (url && url.startsWith("blob:")) URL.revokeObjectURL(url);
+        return;
+      }
+      if (!url) {
+        setMissing(true);
+        return;
+      }
+      if (url.startsWith("blob:")) objectUrl = url;
+      setSrc(url);
+    });
+    return () => {
+      cancelled = true;
+      if (objectUrl) URL.revokeObjectURL(objectUrl);
+    };
+  }, [sound]);
+
+  if (missing) {
+    return (
+      <p className="sound-error" role="alert">
+        This song is not on this device anymore. Remove it and add it again.
+      </p>
+    );
+  }
+  return (
+    <audio
+      className="sound-audio"
+      controls
+      preload="metadata"
+      src={src ?? undefined}
+    />
+  );
+}
 
 type SoundDrawerProps = {
   primaryHex?: string;
@@ -79,16 +124,10 @@ export function SoundDrawer({
       setPendingFile(null);
       return;
     }
-    if (!file.type.startsWith("audio/")) {
+    const invalid = validateSoundFile(file);
+    if (invalid) {
       setPendingFile(null);
-      setError("Use an audio file (MP3, WAV, M4A, etc.).");
-      return;
-    }
-    if (file.size > MAX_SOUND_BYTES) {
-      setPendingFile(null);
-      setError(
-        `That file is too large (over ${Math.round(MAX_SOUND_BYTES / (1024 * 1024))}MB). Pick a shorter clip or compress it under ~6MB.`,
-      );
+      setError(invalid);
       return;
     }
     setPendingFile(file);
@@ -99,24 +138,20 @@ export function SoundDrawer({
     setBusy(true);
     setError(null);
     try {
-      if (pendingFile.size > MAX_SOUND_BYTES) {
-        setError(
-          `That file is too large (over ${Math.round(MAX_SOUND_BYTES / (1024 * 1024))}MB). Pick a shorter clip or compress it under ~6MB.`,
-        );
+      const invalid = validateSoundFile(pendingFile);
+      if (invalid) {
+        setError(invalid);
         return;
       }
       if (!attested) {
         setError(ATTESTATION_LABEL);
         return;
       }
-      const dataUrl = await readAudioFileAsDataUrl(pendingFile);
-      const result = addUploadedSound(library, {
-        title: pendingFile.name.replace(/\.[^.]+$/, "") || pendingFile.name,
-        dataUrl,
-        mimeType: pendingFile.type || "audio/mpeg",
-        byteSize: pendingFile.size,
-        attestedAt: new Date().toISOString(),
-      });
+      const result = await addUploadedSoundFile(
+        library,
+        pendingFile,
+        new Date().toISOString(),
+      );
       if (!result.ok) {
         setError(result.error);
         return;
@@ -186,12 +221,7 @@ export function SoundDrawer({
                   <strong>{selected.title}</strong>
                   <span>{formatSoundSize(selected.byteSize)}</span>
                 </div>
-                <audio
-                  className="sound-audio"
-                  controls
-                  preload="metadata"
-                  src={selected.dataUrl}
-                />
+                <SoundAudio key={selected.id} sound={selected} />
                 <button
                   type="button"
                   className="door-upgrade-btn door-upgrade-btn-ghost"
@@ -304,17 +334,18 @@ export function SoundDrawer({
                 style={{ borderColor: `${primaryHex}66`, color: textHex }}
                 onClick={() => fileRef.current?.click()}
               >
-                {pendingFile ? pendingFile.name : "Choose audio file"}
+                {pendingFile
+                  ? pendingFile.name
+                  : `Choose audio file (max ${MAX_SOUND_MB}MB)`}
               </button>
             </label>
             {pendingFile ? (
               <p className="sound-file-meta">
-                {formatSoundSize(pendingFile.size)} · max ~
-                {Math.round(MAX_SOUND_BYTES / (1024 * 1024))}MB
+                {formatSoundSize(pendingFile.size)} · max {MAX_SOUND_MB}MB
               </p>
             ) : (
               <p className="sound-file-meta">
-                Audio only. Max ~{Math.round(MAX_SOUND_BYTES / (1024 * 1024))}MB.
+                Audio only. Max {MAX_SOUND_MB}MB.
               </p>
             )}
 

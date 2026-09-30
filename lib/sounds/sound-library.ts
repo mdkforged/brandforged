@@ -1,18 +1,53 @@
 /**
  * Free sound library — user-owned uploads + links to free licensed catalogs.
  * NO YouTube stream scraping / pirate downloaders.
- * Storage: localStorage bf-sound-library-v1
+ * Storage: metadata in localStorage bf-sound-library-v1; song bytes in
+ * IndexedDB (see sound-blob-store.ts) so files up to 25MB fit.
  */
+import {
+  deleteSoundBlob,
+  getSoundBlob,
+  putSoundBlob,
+} from "@/lib/sounds/sound-blob-store";
+
 export const SOUND_LIBRARY_STORAGE_KEY = "bf-sound-library-v1";
 
-/** Reject audio uploads over ~6MB with a clear message. */
-export const MAX_SOUND_BYTES = 6 * 1024 * 1024;
+/** Max audio upload size, shown on the upload buttons. */
+export const MAX_SOUND_MB = 25;
+export const MAX_SOUND_BYTES = MAX_SOUND_MB * 1024 * 1024;
+
+/** Only used when IndexedDB is unavailable: small files can ride in localStorage. */
+const LOCAL_DATA_URL_MAX_BYTES = 3 * 1024 * 1024;
+
+function formatMb(bytes: number): string {
+  const mb = bytes / (1024 * 1024);
+  const rounded = Math.round(mb * 10) / 10;
+  return Number.isInteger(rounded) ? String(rounded) : rounded.toFixed(1);
+}
+
+/** e.g. "That file is 31MB. Max is 25MB." */
+export function soundTooLargeMessage(bytes: number): string {
+  return `That file is ${formatMb(bytes)}MB. Max is ${MAX_SOUND_MB}MB.`;
+}
+
+/** Returns a visible error string, or null when the file is OK to add. */
+export function validateSoundFile(file: { size: number; type: string }): string | null {
+  if (!file.type.startsWith("audio/")) {
+    return "Use an audio file (MP3, WAV, M4A, etc.).";
+  }
+  if (file.size > MAX_SOUND_BYTES) {
+    return soundTooLargeMessage(file.size);
+  }
+  return null;
+}
 
 export type LibrarySound = {
   id: string;
   title: string;
-  /** data URL for the uploaded audio file */
+  /** data URL for older small uploads; empty when bytes live in IndexedDB */
   dataUrl: string;
+  /** "idb" when the audio bytes are stored in IndexedDB under this id */
+  storage?: "idb";
   mimeType: string;
   byteSize: number;
   /** ISO time when user checked the ownership attestation */
@@ -130,62 +165,93 @@ export type AddSoundResult =
 
 /**
  * Add an attested upload. Caller must have checked the ownership checkbox.
- * Rejects files over MAX_SOUND_BYTES (~6MB).
+ * Rejects files over MAX_SOUND_BYTES (25MB) with a message stating the max.
+ * Bytes go to IndexedDB; only metadata is written to localStorage.
  */
-export function addUploadedSound(
+export async function addUploadedSoundFile(
   state: SoundLibraryState,
-  input: {
-    title: string;
-    dataUrl: string;
-    mimeType: string;
-    byteSize: number;
-    attestedAt: string;
-  },
-): AddSoundResult {
-  if (input.byteSize > MAX_SOUND_BYTES) {
-    return {
-      ok: false,
-      error: `That file is too large (over ${Math.round(MAX_SOUND_BYTES / (1024 * 1024))}MB). Pick a shorter clip or compress it under ~6MB.`,
-    };
-  }
-  if (!input.dataUrl || !input.mimeType.startsWith("audio/")) {
-    return { ok: false, error: "Use an audio file (MP3, WAV, M4A, etc.)." };
-  }
-  if (!input.attestedAt) {
+  file: File,
+  attestedAt: string,
+): Promise<AddSoundResult> {
+  const invalid = validateSoundFile(file);
+  if (invalid) return { ok: false, error: invalid };
+  if (!attestedAt) {
     return {
       ok: false,
       error:
         "Confirm you own this music or have legal permission before uploading.",
     };
   }
+  const id = newId();
+  let storedInIdb = false;
+  let dataUrl = "";
+  try {
+    await putSoundBlob(id, file);
+    storedInIdb = true;
+  } catch {
+    if (file.size <= LOCAL_DATA_URL_MAX_BYTES) {
+      try {
+        dataUrl = await readAudioFileAsDataUrl(file);
+      } catch {
+        dataUrl = "";
+      }
+    }
+    if (!dataUrl) {
+      return {
+        ok: false,
+        error: `Could not keep that song on this device (browser storage is full or blocked). Max is ${MAX_SOUND_MB}MB.`,
+      };
+    }
+  }
   const sound: LibrarySound = {
-    id: newId(),
-    title: input.title.trim() || "Untitled sound",
-    dataUrl: input.dataUrl,
-    mimeType: input.mimeType,
-    byteSize: input.byteSize,
-    attestedAt: input.attestedAt,
+    id,
+    title: file.name.replace(/\.[^.]+$/, "") || file.name || "Untitled sound",
+    dataUrl,
+    mimeType: file.type || "audio/mpeg",
+    byteSize: file.size,
+    attestedAt,
     createdAt: new Date().toISOString(),
     source: "upload",
+    ...(storedInIdb ? { storage: "idb" as const } : {}),
   };
   const next: SoundLibraryState = {
     sounds: [sound, ...state.sounds],
     selectedId: sound.id,
   };
   if (!saveSoundLibrary(next)) {
+    if (storedInIdb) void deleteSoundBlob(id).catch(() => undefined);
     return {
       ok: false,
       error:
-        "Could not keep that song on this device. Try a smaller file, then save again.",
+        "Could not keep that song on this device. Free some space, then save again.",
     };
   }
   return { ok: true, state: next, sound };
+}
+
+/**
+ * Playable src for a sound: its data URL, or an object URL from IndexedDB
+ * (caller revokes blob: URLs). Null when the bytes are gone.
+ */
+export async function resolveSoundSrc(sound: LibrarySound): Promise<string | null> {
+  if (sound.dataUrl) return sound.dataUrl;
+  if (sound.storage !== "idb") return null;
+  try {
+    const blob = await getSoundBlob(sound.id);
+    return blob ? URL.createObjectURL(blob) : null;
+  } catch {
+    return null;
+  }
 }
 
 export function removeSound(
   state: SoundLibraryState,
   id: string,
 ): SoundLibraryState {
+  const removed = state.sounds.find((s) => s.id === id);
+  if (removed?.storage === "idb") {
+    void deleteSoundBlob(id).catch(() => undefined);
+  }
   const sounds = state.sounds.filter((s) => s.id !== id);
   const selectedId =
     state.selectedId === id

@@ -11,6 +11,7 @@ import {
 } from "@/lib/access/doors";
 import { createClient } from "@/lib/auth/supabase/client";
 import { isAuthConfigured } from "@/lib/validation/env";
+import { hasLocalKit } from "@/lib/onboarding/use-onboarding-answers";
 
 const EMPTY: ProfileAccess = {
   door_access: "you",
@@ -57,6 +58,17 @@ export function useProfileAccess() {
           )
           .eq("id", user.id)
           .maybeSingle();
+        let completedAt: string | null = data?.onboarding_completed_at ?? null;
+        if (!completedAt && hasLocalKit()) {
+          // Kit saved on this device but the account never got the flag
+          // (e.g. setup finished while signed out): sync it so other devices match.
+          try {
+            const healed = await supabase.rpc("mark_onboarding_completed");
+            if (!healed.error) completedAt = new Date().toISOString();
+          } catch {
+            /* ignore - local kit still counts as set up */
+          }
+        }
         const name =
           (typeof data?.display_name === "string" && data.display_name.trim()) ||
           user.email ||
@@ -69,7 +81,7 @@ export function useProfileAccess() {
           solution_focus:
             (data?.solution_focus as SolutionFocus | null | undefined) ?? null,
           world_upgrade_requested_at: data?.world_upgrade_requested_at ?? null,
-          onboarding_completed_at: data?.onboarding_completed_at ?? null,
+          onboarding_completed_at: completedAt,
         });
       } catch {
         setDisplayName(user.email || null);

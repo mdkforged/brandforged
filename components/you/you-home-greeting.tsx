@@ -19,8 +19,11 @@ import {
 
 export function YouHomeGreeting() {
   const answers = useOnboardingAnswers();
-  const { signedIn, onboardingDone } = useProfileAccess();
-  const brandName = answers?.brandName?.trim() || answers?.aboutYou?.trim();
+  const { signedIn, onboardingDone, ready } = useProfileAccess();
+  const brandName =
+    answers?.brandName?.trim() ||
+    answers?.aboutYou?.trim() ||
+    (answers?.kit ? "Your brand" : "");
   const firstMake = answers?.firstMake;
   const brandForPalette =
     answers?.brandName?.trim() || answers?.aboutYou?.trim() || "";
@@ -41,16 +44,18 @@ export function YouHomeGreeting() {
     : undefined;
 
   if (!brandName) {
-    const showGetStarted = !onboardingDone;
+    const showGetStarted = ready && !isStarted;
     return (
       <div className="page-intro">
         <div>
           <p className="eyebrow">This is You</p>
           <h1>Who you are.</h1>
           <p className="intro-copy">
-            {onboardingDone
+            {isStarted
               ? "Your account already finished setup on another device. Local brand details aren't on this phone or browser yet."
-              : "You haven't set up your brand yet. Hit Get started to name your brand, pick your socials, and unlock your workspace."}
+              : showGetStarted
+                ? "You haven't set up your brand yet. Hit Get started to name your brand, pick your socials, and unlock your workspace."
+                : "Loading your brand."}
           </p>
           {showGetStarted ? (
             <>

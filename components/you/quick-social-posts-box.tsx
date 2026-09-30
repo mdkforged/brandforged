@@ -10,7 +10,7 @@ import { labelForSite, type SocialSiteId } from "@/lib/onboarding/social";
 
 export function QuickSocialPostsBox() {
   const answers = useOnboardingAnswers();
-  const { onboardingDone } = useProfileAccess();
+  const { onboardingDone, ready } = useProfileAccess();
   const isStarted = hasFinishedStart(answers) || onboardingDone;
   const sites =
     Array.isArray(answers?.socialSites) && answers.socialSites.length > 0
@@ -26,7 +26,8 @@ export function QuickSocialPostsBox() {
       }
     : { cursor: "pointer" as const };
 
-  if (!isStarted) {
+  // Wait for the account check so a set-up account never flashes Get started.
+  if (!isStarted && ready) {
     return (
       <Link href="/start" className="quick-posts-box" style={energyStyle}>
         <p className="quick-posts-kicker">Get started</p>

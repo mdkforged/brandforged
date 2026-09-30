@@ -1,5 +1,8 @@
 import { NextResponse } from "next/server";
 import {
+  briefAsksForPhotoCaption,
+  enforceFourHashtags,
+  extractReleaseTitle,
   localOnBrandCaption,
   type MakeCaptionInput,
 } from "@/lib/you/make-caption";
@@ -9,8 +12,12 @@ export const runtime = "nodejs";
 const SYSTEM_PROMPT = [
   "Artist: Tethered & Truth by MDK.",
   "Voice: inspiring, empathetic, powerful. Dark luxury without hype.",
-  "Length: 3-6 short sentences. Specific. Human.",
-  "The user's one-line intent is a brief only - never paste or restate it as the caption.",
+  "Length: medium, 3-6 short sentences. Specific. Human.",
+  "The user's one-line brief is the job: it names the subject of the post. Write about that subject.",
+  "The brief is intent only - never paste, quote, or restate it as the caption.",
+  "If the brief names a song, album, single, EP, or release (for example 'Album art - Moment To Rise'), write about that release: what it feels like, what it is about, why it matters to the listener. Use the release title naturally.",
+  "Do NOT describe the photo or image. You cannot see it. Never write 'the frame captures', and never list flowers, lighting, colors, outfits, poses, or scenery. Words like album art, cover, or look in the brief say what the image is for, not what to write about.",
+  "Only speak to the image itself if the brief explicitly asks for a caption for this photo or to describe the photo / the look, and even then stay with what the brief says.",
   "Never use: now available, listen where you like, out now, emoji dumps, hashtag walls, slay, or corporate launch-speak.",
   "End the caption with exactly 4 popular, relevant hashtags on their own last line (example shape: #NewMusic #TetheredAndTruth #IndependentArtist #NowPlaying). Not 3, not 5, not a dump.",
   "Return caption text only. No quotes, no labels, no preamble.",
@@ -67,12 +74,23 @@ export async function POST(request: Request) {
     return localResponse(input);
   }
 
+  // The Look photo is never sent to the model: the brief is the subject.
+  const releaseTitle = extractReleaseTitle(input.oneLiner);
+  const photoRequested = briefAsksForPhotoCaption(input.oneLiner);
   const userParts = [
+    `SUBJECT OF THE POST (write about this; do not paste or restate it): ${input.oneLiner}`,
+    releaseTitle
+      ? `Release named in the brief: "${releaseTitle}" - write about this release.`
+      : "",
+    photoRequested
+      ? "The brief asks for a photo caption. Keep to what the brief says about the look; do not invent image details."
+      : "Photo: not provided and not the subject. Do not describe any image.",
     `Brand: ${input.brandName}`,
     input.voiceLabel ? `Voice label: ${input.voiceLabel}` : "",
     input.voiceTone?.length ? `Voice tone: ${input.voiceTone.join(", ")}` : "",
-    input.moodTags?.length ? `Mood: ${input.moodTags.join(", ")}` : "",
-    `Intent (brief only, do not paste): ${input.oneLiner}`,
+    input.moodTags?.length
+      ? `Mood (tone only, not image content): ${input.moodTags.join(", ")}`
+      : "",
   ].filter(Boolean);
 
   try {
@@ -101,10 +119,11 @@ export async function POST(request: Request) {
       choices?: Array<{ message?: { content?: string } }>;
     };
     const raw = data.choices?.[0]?.message?.content ?? "";
-    const caption = String(raw).trim().replace(/^["']|["']$/g, "");
-    if (!caption) {
+    const cleaned = String(raw).trim().replace(/^["']|["']$/g, "");
+    if (!cleaned.replace(/#[A-Za-z0-9_]+/g, "").trim()) {
       return localResponse(input);
     }
+    const caption = enforceFourHashtags(cleaned);
 
     return NextResponse.json({ caption, source: "ai" as const });
   } catch {

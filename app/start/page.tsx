@@ -53,10 +53,10 @@ import {
 import { createClient } from "@/lib/auth/supabase/client";
 import { isAuthConfigured } from "@/lib/validation/env";
 import {
-  addUploadedSound,
+  addUploadedSoundFile,
   loadSoundLibrary,
-  MAX_SOUND_BYTES,
-  readAudioFileAsDataUrl,
+  MAX_SOUND_MB,
+  validateSoundFile,
 } from "@/lib/sounds/sound-library";
 
 const PLATFORM_STRIKE = getEnergyStrike("forge-green");
@@ -327,16 +327,10 @@ export default function StartPage() {
       setSongFile(null);
       return;
     }
-    if (!file.type.startsWith("audio/")) {
+    const invalid = validateSoundFile(file);
+    if (invalid) {
       setSongFile(null);
-      setPhotoError("Use an audio file (MP3, WAV, M4A, etc.).");
-      return;
-    }
-    if (file.size > MAX_SOUND_BYTES) {
-      setSongFile(null);
-      setPhotoError(
-        `That song is too large (over ${Math.round(MAX_SOUND_BYTES / (1024 * 1024))}MB). Pick a shorter clip under ~6MB.`,
-      );
+      setPhotoError(invalid);
       return;
     }
     setSongFile(file);
@@ -442,14 +436,11 @@ export default function StartPage() {
     // Save song first so a failure never marks setup finished.
     if (songFile && songAttested) {
       try {
-        const dataUrl = await readAudioFileAsDataUrl(songFile);
-        const result = addUploadedSound(loadSoundLibrary(), {
-          title: songFile.name.replace(/\.[^.]+$/, "") || songFile.name,
-          dataUrl,
-          mimeType: songFile.type || "audio/mpeg",
-          byteSize: songFile.size,
-          attestedAt: new Date().toISOString(),
-        });
+        const result = await addUploadedSoundFile(
+          loadSoundLibrary(),
+          songFile,
+          new Date().toISOString(),
+        );
         if (!result.ok) {
           setPending(false);
           setPhotoError(result.error);
@@ -684,7 +675,7 @@ export default function StartPage() {
                     </div>
                   ) : (
                     <label className="photo-add" style={{ minHeight: 72 }}>
-                      <span>Upload song</span>
+                      <span>Upload song (max {MAX_SOUND_MB}MB)</span>
                       <input
                         type="file"
                         accept="audio/*"

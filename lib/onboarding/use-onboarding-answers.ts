@@ -121,8 +121,8 @@ function normalizeReferencePhotos(value: unknown): string[] {
 }
 
 /**
- * Finished /start when vault was saved / activated, OR brand name + socials + kit
- * are present from a completed setup.
+ * Finished /start when vault was saved / activated, OR an approved kit is saved
+ * on this device (the kit is only written to storage when /start is approved).
  */
 export function hasFinishedStart(
   answers: OnboardingAnswers | null | undefined,
@@ -136,14 +136,24 @@ export function hasFinishedStart(
   }
   if (!answers) return false;
   if (answers.vaultSaved || answers.activated) return true;
-  const brand =
-    (answers.brandName && answers.brandName.trim()) ||
-    (answers.aboutYou && answers.aboutYou.trim()) ||
-    "";
-  const socialOk =
-    Array.isArray(answers.socialSites) && answers.socialSites.length > 0;
-  const kitOk = Boolean(answers.kit);
-  return Boolean(brand) && socialOk && kitOk;
+  // A saved kit means setup is done, even if brand name or socials are missing here.
+  if (answers.kit || answers.session?.approved) return true;
+  return false;
+}
+
+/** True when this device has a saved kit in bf-identity-v1 (non-hook read). */
+export function hasLocalKit(): boolean {
+  if (typeof window === "undefined") return false;
+  try {
+    const raw =
+      window.localStorage.getItem(IDENTITY_STORAGE_KEY) ||
+      window.localStorage.getItem(LEGACY_ONBOARDING_STORAGE_KEY);
+    if (!raw) return false;
+    const parsed = JSON.parse(raw) as { kit?: unknown };
+    return Boolean(parsed && parsed.kit);
+  } catch {
+    return false;
+  }
 }
 
 function toAnswers(raw: string): OnboardingAnswers | null {
