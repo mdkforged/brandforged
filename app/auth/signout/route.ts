@@ -10,7 +10,7 @@ export async function POST(request: Request) {
     await supabase.auth.signOut();
   }
 
-  return NextResponse.redirect(`${origin}/`, { status: 303 });
+  return NextResponse.redirect(`${origin}/login`, { status: 303 });
 }
 
 export async function GET(request: Request) {

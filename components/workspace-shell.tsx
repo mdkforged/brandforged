@@ -5,6 +5,7 @@ import { usePathname, useRouter } from "next/navigation";
 import { useState } from "react";
 import { useProfileAccess } from "@/lib/access/use-profile-access";
 import { createClient } from "@/lib/auth/supabase/client";
+import { isAuthConfigured } from "@/lib/validation/env";
 import {
   hasFinishedStart,
   useOnboardingAnswers,
@@ -169,7 +170,7 @@ export function WorkspaceShell({ children }: WorkspaceShellProps) {
             {isHome ? "Home" : currentDoor?.label ?? "Home"}
           </div>
           <div className="top-actions">
-            {authReady && !setupDone ? (
+            {authReady && !setupDone && (signedIn || !isAuthConfigured()) ? (
               <>
                 <Link href="/start" className="door-upgrade-btn get-started-btn">
                   Get started

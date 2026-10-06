@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useProfileAccess } from "@/lib/access/use-profile-access";
+import { isAuthConfigured } from "@/lib/validation/env";
 import {
   hasFinishedStart,
   useOnboardingAnswers,
@@ -14,6 +15,8 @@ export function HomeGetStarted() {
 
   if (!ready) return null;
   if (setupDone) return null;
+  // Get started is only for a signed-in account with no kit.
+  if (!signedIn && isAuthConfigured()) return null;
 
   return (
     <>

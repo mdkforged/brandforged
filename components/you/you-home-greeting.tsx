@@ -7,6 +7,7 @@ import {
   routeForFirstMake,
 } from "@/lib/identity/engine-scaffold";
 import { useProfileAccess } from "@/lib/access/use-profile-access";
+import { isAuthConfigured } from "@/lib/validation/env";
 import {
   hasFinishedStart,
   useOnboardingAnswers,
@@ -44,7 +45,9 @@ export function YouHomeGreeting() {
     : undefined;
 
   if (!brandName) {
-    const showGetStarted = ready && !isStarted;
+    // Get started is only for a signed-in account with no kit.
+    const showGetStarted =
+      ready && !isStarted && (signedIn || !isAuthConfigured());
     return (
       <div className="page-intro">
         <div>
@@ -55,7 +58,9 @@ export function YouHomeGreeting() {
               ? "Your account already finished setup on another device. Local brand details aren't on this phone or browser yet."
               : showGetStarted
                 ? "You haven't set up your brand yet. Hit Get started to name your brand, pick your socials, and unlock your workspace."
-                : "Loading your brand."}
+                : ready && !signedIn
+                  ? "Sign in to open your brand."
+                  : "Loading your brand."}
           </p>
           {showGetStarted ? (
             <>
@@ -103,7 +108,7 @@ export function YouHomeGreeting() {
         ) : null}
         {missingSocials ? (
           <p>
-            <Link href="/start" className="new-button">
+            <Link href="/start?edit=1" className="new-button">
               Pick your socials
             </Link>
           </p>

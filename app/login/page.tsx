@@ -5,6 +5,12 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { createClient } from "@/lib/auth/supabase/client";
 import { isAuthConfigured } from "@/lib/validation/env";
 import { getEnergyStrike } from "@/lib/brand/energy-strike";
+import { destinationAfterSignIn } from "@/lib/auth/entry-routing";
+import { IDLE_SIGNED_OUT_MESSAGE, writeLastActivity } from "@/lib/auth/idle";
+import {
+  hasLocalKit,
+  IDENTITY_DONE_KEY,
+} from "@/lib/onboarding/use-onboarding-answers";
 import {
   DEFAULT_ACCOUNT_KIND,
   defaultSolutionFocus,
@@ -16,10 +22,21 @@ type Mode = "signin" | "signup";
 
 const PLATFORM_STRIKE = getEnergyStrike("forge-green");
 
+/** Same rule as the rest of the app: a saved kit on this device counts as set up. */
+function localSetupDone(): boolean {
+  try {
+    if (window.localStorage.getItem(IDENTITY_DONE_KEY) === "1") return true;
+  } catch {
+    /* ignore */
+  }
+  return hasLocalKit();
+}
+
 function LoginForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const nextPath = searchParams.get("next") || "/";
+  const idleOut = searchParams.get("idle") === "1";
   const configured = useMemo(() => isAuthConfigured(), []);
   const [mode, setMode] = useState<Mode>("signin");
   const [signupStep, setSignupStep] = useState(1);
@@ -96,6 +113,7 @@ function LoginForm() {
           return;
         }
         if (data.session) {
+          writeLastActivity(Date.now());
           router.replace("/start");
           router.refresh();
           return;
@@ -108,15 +126,33 @@ function LoginForm() {
         return;
       }
 
-      const { error: signInError } = await supabase.auth.signInWithPassword({
-        email,
-        password,
-      });
+      const { data: signInData, error: signInError } =
+        await supabase.auth.signInWithPassword({
+          email,
+          password,
+        });
       if (signInError) {
         setError(signInError.message);
         return;
       }
-      router.replace(nextPath);
+      // A fresh sign-in starts the idle clock from now.
+      writeLastActivity(Date.now());
+      // Kit (account flag or saved on this device) -> home, never setup.
+      // No kit -> setup. Unknown (profile check failed) -> home, not setup.
+      let hasKit: boolean | null = localSetupDone();
+      if (!hasKit && signInData.user) {
+        try {
+          const { data: prof, error: profError } = await supabase
+            .from("profiles")
+            .select("onboarding_completed_at")
+            .eq("id", signInData.user.id)
+            .maybeSingle();
+          hasKit = profError ? null : Boolean(prof?.onboarding_completed_at);
+        } catch {
+          hasKit = null;
+        }
+      }
+      router.replace(destinationAfterSignIn({ hasKit, next: nextPath }));
       router.refresh();
     } catch (err) {
       setError(err instanceof Error ? err.message : "Authentication failed");
@@ -358,6 +394,11 @@ function LoginForm() {
                 </p>
               ) : null}
               {info ? <p className="login-info">{info}</p> : null}
+              {idleOut && !info && !error ? (
+                <p className="login-info" role="status">
+                  {IDLE_SIGNED_OUT_MESSAGE}
+                </p>
+              ) : null}
 
               {mode === "signup" && signupStep === 2 ? (
                 <div className="step-actions">

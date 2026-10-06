@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useProfileAccess } from "@/lib/access/use-profile-access";
+import { isAuthConfigured } from "@/lib/validation/env";
 import {
   hasFinishedStart,
   useOnboardingAnswers,
@@ -10,7 +11,7 @@ import { labelForSite, type SocialSiteId } from "@/lib/onboarding/social";
 
 export function QuickSocialPostsBox() {
   const answers = useOnboardingAnswers();
-  const { onboardingDone, ready } = useProfileAccess();
+  const { onboardingDone, ready, signedIn } = useProfileAccess();
   const isStarted = hasFinishedStart(answers) || onboardingDone;
   const sites =
     Array.isArray(answers?.socialSites) && answers.socialSites.length > 0
@@ -27,7 +28,7 @@ export function QuickSocialPostsBox() {
     : { cursor: "pointer" as const };
 
   // Wait for the account check so a set-up account never flashes Get started.
-  if (!isStarted && ready) {
+  if (!isStarted && ready && (signedIn || !isAuthConfigured())) {
     return (
       <Link href="/start" className="quick-posts-box" style={energyStyle}>
         <p className="quick-posts-kicker">Get started</p>

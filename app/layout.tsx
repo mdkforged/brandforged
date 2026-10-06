@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Cormorant_Garamond, DM_Sans } from "next/font/google";
 import "./globals.css";
+import { IdleSignOut } from "@/components/auth/idle-sign-out";
 
 const display = Cormorant_Garamond({
   subsets: ["latin"],
@@ -29,7 +30,10 @@ export default function RootLayout({
       lang="en"
       className={`${display.variable} ${sans.variable} h-full antialiased`}
     >
-      <body className="min-h-full flex flex-col">{children}</body>
+      <body className="min-h-full flex flex-col">
+        {children}
+        <IdleSignOut />
+      </body>
     </html>
   );
 }
