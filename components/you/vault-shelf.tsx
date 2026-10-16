@@ -161,8 +161,10 @@ export function VaultShelf() {
     <article className="module-card vault-card">
       <h2>Vault</h2>
       <p className="vault-copy">
-        Saved stills, kept on this device only (up to {VAULT_MAX}). Tap one to
-        use it on your Look or delete it.
+        {vault.signedIn
+          ? `Saved stills, synced to your account on every device you sign in on (up to ${VAULT_MAX}).`
+          : `Saved stills on this device (up to ${VAULT_MAX}). Sign in to sync them to your account.`}{" "}
+        Tap one to use it on your Look or delete it.
       </p>
       {vault.status === "error" && vault.error ? (
         <p className="locked-you-error" role="alert">
@@ -204,6 +206,16 @@ export function VaultShelf() {
           ? "Opening the Vault..."
           : `${items.length} / ${VAULT_MAX}`}
       </p>
+      {vault.syncing ? (
+        <p className="vault-count" role="status">
+          Syncing with your account...
+        </p>
+      ) : null}
+      {vault.note ? (
+        <p className="vault-notice" role="status">
+          {vault.note}
+        </p>
+      ) : null}
       {full ? (
         <p className="vault-full" role="status">
           {VAULT_FULL_MESSAGE}
