@@ -4,6 +4,9 @@ on:
   schedule:
     - cron: "0 11 * * 1,4"
   workflow_dispatch:
+  push:
+    branches: [main]
+    paths: [.github/workflows/db-backup.yml]
 
 permissions:
   contents: read
@@ -25,6 +28,7 @@ jobs:
           BACKUP_PASSPHRASE: ${{ secrets.BACKUP_PASSPHRASE }}
         run: |
           set -euo pipefail
+          SUPABASE_DB_URL="$(printf '%s' "$SUPABASE_DB_URL" | tr -d '\r\n')"
           test -n "$SUPABASE_DB_URL" && test -n "$BACKUP_PASSPHRASE"
           f="brandforged-$(date -u +%Y%m%d).dump"
           /usr/lib/postgresql/17/bin/pg_dump "$SUPABASE_DB_URL" -Fc --no-owner --no-privileges -n public -n auth -n storage -f "$f"
